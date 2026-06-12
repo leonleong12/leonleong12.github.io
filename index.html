@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="water-reminder-icon.png">
+  <link id="faviconLink" rel="icon" type="image/png" href="water-reminder-icon.png">
   <title>喝水提醒器</title>
   <style>
     :root {
@@ -182,15 +182,15 @@
     }
 
     .dog-wrap.trick-hop {
-      animation: trickHop 880ms cubic-bezier(.2, .9, .24, 1.12), idle 3.8s ease-in-out 900ms infinite;
+      animation: trickHop 1.15s cubic-bezier(.2, .9, .24, 1.12), idle 3.8s ease-in-out 1.18s infinite;
     }
 
     .dog-wrap.trick-wiggle {
-      animation: trickWiggle 920ms ease-in-out, idle 3.8s ease-in-out 940ms infinite;
+      animation: trickWiggle 1.15s ease-in-out, idle 3.8s ease-in-out 1.18s infinite;
     }
 
     .dog-wrap.trick-spin {
-      animation: trickSpin 980ms cubic-bezier(.22, .86, .34, 1), idle 3.8s ease-in-out 1s infinite;
+      animation: trickSpin 1.15s cubic-bezier(.2, .86, .28, 1.08), idle 3.8s ease-in-out 1.18s infinite;
     }
 
     .dog {
@@ -807,6 +807,51 @@
       opacity: 1;
     }
 
+    .corner-alert {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      z-index: 26;
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border: 3px solid #7b1717;
+      border-radius: 16px;
+      background: #ffb3ad;
+      box-shadow: 0 0 0 rgba(255, 54, 54, 0), 0 10px 24px rgba(80, 16, 16, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px) scale(0.88);
+    }
+
+    .corner-alert::before {
+      content: "";
+      position: absolute;
+      inset: -10px;
+      border-radius: 22px;
+      background: radial-gradient(circle, rgba(255, 45, 45, 0.45), transparent 68%);
+      opacity: 0;
+      z-index: -1;
+    }
+
+    .corner-alert::after {
+      content: "";
+      width: 24px;
+      height: 24px;
+      background: url("water-reminder-icon.png") center / cover no-repeat;
+      border-radius: 7px;
+      filter: contrast(1.1);
+    }
+
+    .corner-alert.show {
+      animation: cornerPulse 950ms ease-in-out 0s 7;
+    }
+
+    .corner-alert.show::before {
+      animation: cornerGlow 950ms ease-in-out 0s 7;
+    }
+
     .reminder-pop h2 {
       margin: 0 0 8px;
       font-size: 24px;
@@ -877,27 +922,29 @@
 
     @keyframes trickHop {
       0% { transform: translateY(0) scale(1); }
-      24% { transform: translateY(-34px) scale(1.04, 0.96); }
-      44% { transform: translateY(2px) scale(0.97, 1.05); }
-      64% { transform: translateY(-20px) scale(1.02); }
+      18% { transform: translateY(8px) scale(1.12, 0.82); }
+      42% { transform: translateY(-76px) scale(0.88, 1.14); }
+      62% { transform: translateY(4px) scale(1.08, 0.9); }
+      78% { transform: translateY(-24px) scale(0.96, 1.05); }
       100% { transform: translateY(0) scale(1); }
     }
 
     @keyframes trickWiggle {
-      0%, 100% { transform: rotate(0deg) translateY(0); }
-      16% { transform: rotate(-8deg) translateY(-4px); }
-      32% { transform: rotate(8deg) translateY(-8px); }
-      48% { transform: rotate(-7deg) translateY(-5px); }
-      64% { transform: rotate(6deg) translateY(-2px); }
-      82% { transform: rotate(-3deg) translateY(0); }
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      12% { transform: translateX(-28px) rotate(-12deg); }
+      24% { transform: translateX(28px) rotate(12deg); }
+      36% { transform: translateX(-24px) rotate(-10deg); }
+      48% { transform: translateX(24px) rotate(10deg); }
+      62% { transform: translateX(-14px) rotate(-6deg); }
+      78% { transform: translateX(10px) rotate(4deg); }
     }
 
     @keyframes trickSpin {
       0% { transform: rotate(0deg) scale(1); }
-      28% { transform: rotate(-10deg) scale(1.04); }
-      58% { transform: rotate(12deg) scale(1.02); }
-      78% { transform: rotate(-4deg) scale(1.05, 0.96); }
-      100% { transform: rotate(0deg) scale(1); }
+      18% { transform: rotate(-18deg) scale(0.94); }
+      52% { transform: rotate(372deg) scale(1.06); }
+      72% { transform: rotate(344deg) scale(1.02); }
+      100% { transform: rotate(360deg) scale(1); }
     }
 
     @keyframes twinkle {
@@ -909,6 +956,24 @@
       0% { transform: translateY(130%); opacity: 0; }
       14%, 78% { transform: translateY(0); opacity: 1; }
       100% { transform: translateY(-130%); opacity: 0; }
+    }
+
+    @keyframes cornerPulse {
+      0%, 100% {
+        opacity: 0.35;
+        transform: translateY(0) scale(0.92);
+        box-shadow: 0 0 0 rgba(255, 54, 54, 0), 0 10px 24px rgba(80, 16, 16, 0.18);
+      }
+      45% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.08);
+        box-shadow: 0 0 34px rgba(255, 34, 34, 0.95), 0 0 74px rgba(255, 34, 34, 0.55), 0 10px 24px rgba(80, 16, 16, 0.18);
+      }
+    }
+
+    @keyframes cornerGlow {
+      0%, 100% { opacity: 0.1; transform: scale(0.88); }
+      45% { opacity: 1; transform: scale(1.32); }
     }
 
     @media (max-width: 820px) {
@@ -1051,12 +1116,13 @@
     <p id="reminderPopBody">休息一下，喝 500 ml 水吧。</p>
     <button class="primary" id="dismissReminderBtn" type="button">知道了</button>
   </div>
+  <div class="corner-alert" id="cornerAlert" aria-hidden="true"></div>
 
   <div class="permission-modal hidden" id="permissionModal" role="dialog" aria-modal="true" aria-labelledby="permissionTitle">
     <div class="permission-card">
       <h2 id="permissionTitle">開啟喝水通知</h2>
       <p id="permissionIntro">下一步會呼叫瀏覽器自己的通知權限視窗，請選「允許」。</p>
-      <p id="permissionHelp">如果沒有跳出權限視窗，請用本資料夾的 start_water_reminder.ps1 啟動，再用 localhost 網址打開。</p>
+      <p id="permissionHelp">如果沒有跳出權限視窗，請檢查瀏覽器網址列旁的網站設定，確認通知沒有被封鎖。</p>
       <div class="permission-actions">
         <button class="primary" id="allowNotificationBtn" type="button">允許瀏覽器通知</button>
         <button id="closePermissionBtn" type="button">先不要</button>
@@ -1099,6 +1165,8 @@
     const reminderPopTitle = document.getElementById("reminderPopTitle");
     const reminderPopBody = document.getElementById("reminderPopBody");
     const dismissReminderBtn = document.getElementById("dismissReminderBtn");
+    const cornerAlert = document.getElementById("cornerAlert");
+    const faviconLink = document.getElementById("faviconLink");
 
     const healthTips = [
       "多喝水可以幫助代謝，減脂期也更容易控制食慾。",
@@ -1128,6 +1196,9 @@
     let toastTimer = null;
     let titleTimer = null;
     let reminderPopTimer = null;
+    let activeDogAnimation = null;
+    let faviconTimer = null;
+    let alertFaviconHref = null;
     let tipIndex = 0;
     const originalTitle = document.title;
 
@@ -1194,9 +1265,7 @@
 
       permissionHelp.textContent = Notification.permission === "denied"
         ? "請點網址列旁的網站設定，把通知改成允許，然後刷新頁面。"
-        : location.protocol === "file:"
-          ? "你現在是直接打開 HTML 檔案，Chrome/Edge 很可能不彈通知。請用本資料夾的 start_water_reminder.ps1 啟動，再用 localhost 網址打開。"
-          : "如果沒有看到瀏覽器權限視窗，請檢查網址列旁的網站設定，確認通知沒有被封鎖。";
+        : "如果沒有看到瀏覽器權限視窗，請檢查網址列旁的網站設定，確認通知沒有被封鎖。";
 
       allowNotificationBtn.disabled = Notification.permission === "denied";
       permissionModal.classList.remove("hidden");
@@ -1259,6 +1328,70 @@
       reminderPop.classList.add("show");
       window.clearTimeout(reminderPopTimer);
       reminderPopTimer = window.setTimeout(() => reminderPop.classList.remove("show"), 9000);
+      flashCornerAlert();
+      flashFavicon();
+    }
+
+    function flashCornerAlert() {
+      cornerAlert.classList.remove("show");
+      void cornerAlert.offsetWidth;
+      cornerAlert.classList.add("show");
+      window.setTimeout(() => cornerAlert.classList.remove("show"), 6800);
+    }
+
+    function makeAlertFavicon() {
+      if (alertFaviconHref) return Promise.resolve(alertFaviconHref);
+
+      return new Promise((resolve) => {
+        const image = new Image();
+        image.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 64;
+          canvas.height = 64;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#ff3b30";
+          roundedRect(ctx, 2, 2, 60, 60, 16);
+          ctx.shadowColor = "rgba(255, 0, 0, 0.95)";
+          ctx.shadowBlur = 18;
+          ctx.fillStyle = "#ff3b30";
+          roundedRect(ctx, 6, 6, 52, 52, 14);
+          ctx.shadowBlur = 0;
+          ctx.drawImage(image, 14, 14, 36, 36);
+          alertFaviconHref = canvas.toDataURL("image/png");
+          resolve(alertFaviconHref);
+        };
+        image.onerror = () => resolve("water-reminder-icon.png");
+        image.src = "water-reminder-icon.png";
+      });
+    }
+
+    function roundedRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.fill();
+    }
+
+    async function flashFavicon() {
+      const normalHref = "water-reminder-icon.png";
+      const alertHref = await makeAlertFavicon();
+      let count = 0;
+      window.clearInterval(faviconTimer);
+      faviconTimer = window.setInterval(() => {
+        faviconLink.href = count % 2 === 0 ? alertHref : normalHref;
+        count += 1;
+        if (count > 13) {
+          window.clearInterval(faviconTimer);
+          faviconLink.href = normalHref;
+        }
+      }, 520);
     }
 
     function startReminder() {
@@ -1313,11 +1446,52 @@
     function playDogInteraction() {
       const trick = dogTricks[Math.floor(Math.random() * dogTricks.length)];
       const line = dogLines[Math.floor(Math.random() * dogLines.length)];
+      if (activeDogAnimation) {
+        activeDogAnimation.cancel();
+      }
       dogWrap.classList.remove("jump", ...dogTricks);
-      void dogWrap.offsetWidth;
       speech.textContent = line;
-      dogWrap.classList.add(trick);
-      window.setTimeout(() => dogWrap.classList.remove(trick), 1100);
+
+      const trickFrames = {
+        "trick-hop": [
+          { transform: "translateY(0) scale(1)", offset: 0 },
+          { transform: "translateY(8px) scale(1.12, 0.82)", offset: 0.18 },
+          { transform: "translateY(-76px) scale(0.88, 1.14)", offset: 0.42 },
+          { transform: "translateY(4px) scale(1.08, 0.9)", offset: 0.62 },
+          { transform: "translateY(-24px) scale(0.96, 1.05)", offset: 0.78 },
+          { transform: "translateY(0) scale(1)", offset: 1 }
+        ],
+        "trick-wiggle": [
+          { transform: "translateX(0) rotate(0deg)", offset: 0 },
+          { transform: "translateX(-28px) rotate(-12deg)", offset: 0.12 },
+          { transform: "translateX(28px) rotate(12deg)", offset: 0.24 },
+          { transform: "translateX(-24px) rotate(-10deg)", offset: 0.36 },
+          { transform: "translateX(24px) rotate(10deg)", offset: 0.48 },
+          { transform: "translateX(-14px) rotate(-6deg)", offset: 0.62 },
+          { transform: "translateX(10px) rotate(4deg)", offset: 0.78 },
+          { transform: "translateX(0) rotate(0deg)", offset: 1 }
+        ],
+        "trick-spin": [
+          { transform: "rotate(0deg) scale(1)", offset: 0 },
+          { transform: "rotate(-18deg) scale(0.94)", offset: 0.18 },
+          { transform: "rotate(372deg) scale(1.06)", offset: 0.52 },
+          { transform: "rotate(344deg) scale(1.02)", offset: 0.72 },
+          { transform: "rotate(360deg) scale(1)", offset: 1 }
+        ]
+      };
+
+      activeDogAnimation = dogWrap.animate(trickFrames[trick], {
+        duration: 1150,
+        easing: "cubic-bezier(.2, .86, .28, 1.08)",
+        fill: "none"
+      });
+
+      activeDogAnimation.onfinish = () => {
+        activeDogAnimation = null;
+      };
+      activeDogAnimation.oncancel = () => {
+        activeDogAnimation = null;
+      };
     }
 
     function addBottle() {
