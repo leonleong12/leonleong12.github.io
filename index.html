@@ -174,10 +174,23 @@
       place-items: end center;
       transform-origin: 50% 85%;
       animation: idle 3.8s ease-in-out infinite;
+      cursor: pointer;
     }
 
     .dog-wrap.jump {
       animation: jump 900ms cubic-bezier(.2, .9, .28, 1.15), idle 3.8s ease-in-out 920ms infinite;
+    }
+
+    .dog-wrap.trick-hop {
+      animation: trickHop 880ms cubic-bezier(.2, .9, .24, 1.12), idle 3.8s ease-in-out 900ms infinite;
+    }
+
+    .dog-wrap.trick-wiggle {
+      animation: trickWiggle 920ms ease-in-out, idle 3.8s ease-in-out 940ms infinite;
+    }
+
+    .dog-wrap.trick-spin {
+      animation: trickSpin 980ms cubic-bezier(.22, .86, .34, 1), idle 3.8s ease-in-out 1s infinite;
     }
 
     .dog {
@@ -472,7 +485,7 @@
       top: 0;
       width: 68px;
       height: 42px;
-      background: #5c837d;
+      background: linear-gradient(to bottom, var(--bottle) 0 48%, #5c837d 49% 100%);
       border: 3px solid var(--line);
       border-radius: 22px 22px 10px 10px;
       z-index: 2;
@@ -485,7 +498,7 @@
       top: 6px;
       width: 22px;
       height: 30px;
-      background: #5c837d;
+      background: linear-gradient(to bottom, var(--bottle) 0 34%, #5c837d 35% 100%);
       border: 3px solid var(--line);
       border-left: 0;
       border-radius: 0 12px 12px 0;
@@ -505,10 +518,20 @@
 
     .label-dog {
       position: absolute;
-      left: 16px;
-      top: 70px;
-      width: 54px;
+      left: 13px;
+      top: 76px;
+      width: 58px;
       height: 58px;
+      display: grid;
+      place-items: center;
+    }
+
+    .bottle-dog-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      filter: contrast(1.18) saturate(0);
     }
 
     .mini-head {
@@ -612,14 +635,18 @@
 
     .bottle-text {
       position: absolute;
-      left: 10px;
-      right: 10px;
-      top: 38px;
-      color: #67816b;
-      font-size: 9px;
-      font-weight: 900;
+      left: 8px;
+      right: 8px;
+      top: 42px;
+      color: #5f846f;
+      font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+      font-size: 10px;
+      font-weight: 700;
       text-align: center;
-      line-height: 1.1;
+      line-height: 1;
+      white-space: nowrap;
+      transform: scaleX(0.88);
+      transform-origin: center;
     }
 
     .stat-number {
@@ -652,47 +679,90 @@
 
     .log {
       display: grid;
-      grid-template-columns: repeat(auto-fill, 38px);
-      gap: 14px 10px;
+      grid-template-columns: repeat(auto-fill, 42px);
+      gap: 18px 12px;
       margin-top: 16px;
-      padding-top: 8px;
+      padding-top: 14px;
       align-items: end;
     }
 
     .tiny-bottle {
-      width: 34px;
-      height: 54px;
-      border-radius: 13px 13px 10px 10px;
-      background: linear-gradient(90deg, #fff4b3, var(--bottle) 65%, #eadb80);
-      border: 2px solid rgba(23, 49, 49, 0.58);
+      width: 40px;
+      height: 66px;
       position: relative;
-      box-shadow: inset -5px 0 rgba(112, 112, 50, 0.08);
+      display: block;
     }
 
     .tiny-bottle::before {
       content: "";
       position: absolute;
-      left: 50%;
-      top: -10px;
-      width: 20px;
-      height: 12px;
-      transform: translateX(-50%);
-      border-radius: 8px 8px 3px 3px;
-      background: #5c837d;
+      left: 4px;
+      top: 15px;
+      width: 30px;
+      height: 47px;
+      border-radius: 12px 12px 10px 10px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.42) 0 16%, transparent 17%),
+        linear-gradient(90deg, #fff4b3 0%, var(--bottle) 66%, #eadb80 100%);
       border: 2px solid rgba(23, 49, 49, 0.58);
+      box-shadow: inset -5px 0 rgba(112, 112, 50, 0.08);
     }
 
     .tiny-bottle::after {
       content: "";
       position: absolute;
-      right: -7px;
-      top: -5px;
-      width: 8px;
-      height: 13px;
-      background: #5c837d;
+      left: 8px;
+      top: 28px;
+      width: 22px;
+      height: 7px;
+      color: #5f846f;
+      font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+      font-size: 4px;
+      font-weight: 700;
+      text-align: center;
+      content: "Great Time";
+      transform: scaleX(0.86);
+      transform-origin: center;
+      z-index: 3;
+    }
+
+    .tiny-cap {
+      position: absolute;
+      left: 7px;
+      top: 0;
+      width: 25px;
+      height: 19px;
+      border-radius: 10px 10px 4px 4px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.32), transparent 42%),
+        linear-gradient(to bottom, var(--bottle) 0 48%, #5c837d 49% 100%);
+      border: 2px solid rgba(23, 49, 49, 0.58);
+      z-index: 4;
+    }
+
+    .tiny-side {
+      position: absolute;
+      right: 1px;
+      top: 7px;
+      width: 9px;
+      height: 15px;
+      background: linear-gradient(to bottom, var(--bottle) 0 34%, #5c837d 35% 100%);
       border: 2px solid rgba(23, 49, 49, 0.58);
       border-left: 0;
       border-radius: 0 7px 7px 0;
+      z-index: 3;
+    }
+
+    .tiny-dog {
+      position: absolute;
+      left: 12px;
+      top: 38px;
+      width: 15px;
+      height: 15px;
+      background: url("great-time-dog-small.png") center / contain no-repeat;
+      filter: contrast(1.25) saturate(0);
+      mix-blend-mode: multiply;
+      z-index: 3;
     }
 
     .toast {
@@ -714,6 +784,39 @@
     .toast.show {
       transform: translate(-50%, 0);
       opacity: 1;
+    }
+
+    .reminder-pop {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 25;
+      width: min(360px, calc(100% - 32px));
+      padding: 18px;
+      border: 3px solid var(--line);
+      border-radius: 22px;
+      background: var(--white);
+      box-shadow: 8px 8px 0 rgba(23, 49, 49, 0.16), 0 20px 54px rgba(23, 49, 49, 0.22);
+      transform: translateY(130%);
+      opacity: 0;
+      transition: transform 240ms ease, opacity 240ms ease;
+    }
+
+    .reminder-pop.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .reminder-pop h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .reminder-pop p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.45;
     }
 
     .permission-modal {
@@ -770,6 +873,31 @@
       52% { transform: translateY(4px) scale(0.96, 1.06); }
       72% { transform: translateY(-14px) scale(1.01); }
       100% { transform: translateY(0) scale(1); }
+    }
+
+    @keyframes trickHop {
+      0% { transform: translateY(0) scale(1); }
+      24% { transform: translateY(-34px) scale(1.04, 0.96); }
+      44% { transform: translateY(2px) scale(0.97, 1.05); }
+      64% { transform: translateY(-20px) scale(1.02); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    @keyframes trickWiggle {
+      0%, 100% { transform: rotate(0deg) translateY(0); }
+      16% { transform: rotate(-8deg) translateY(-4px); }
+      32% { transform: rotate(8deg) translateY(-8px); }
+      48% { transform: rotate(-7deg) translateY(-5px); }
+      64% { transform: rotate(6deg) translateY(-2px); }
+      82% { transform: rotate(-3deg) translateY(0); }
+    }
+
+    @keyframes trickSpin {
+      0% { transform: rotate(0deg) scale(1); }
+      28% { transform: rotate(-10deg) scale(1.04); }
+      58% { transform: rotate(12deg) scale(1.02); }
+      78% { transform: rotate(-4deg) scale(1.05, 0.96); }
+      100% { transform: rotate(0deg) scale(1); }
     }
 
     @keyframes twinkle {
@@ -888,19 +1016,9 @@
           <div class="bottle" aria-hidden="true">
             <div class="bottle-cap"></div>
             <div class="bottle-body">
-              <div class="bottle-text">GREAT<br>WATER</div>
+              <div class="bottle-text">𝓖𝓻𝓮𝓪𝓽 𝓣𝓲𝓶𝓮</div>
               <div class="label-dog">
-                <div class="mini-ear left"></div>
-                <div class="mini-ear right"></div>
-                <div class="mini-head">
-                  <div class="mini-eye left"></div>
-                  <div class="mini-eye right"></div>
-                  <div class="mini-nose"></div>
-                  <div class="mini-mouth"></div>
-                </div>
-                <div class="mini-body"></div>
-                <div class="mini-paw left"></div>
-                <div class="mini-paw right"></div>
+                <img class="bottle-dog-img" src="great-time-dog-small.png" alt="">
               </div>
             </div>
           </div>
@@ -927,6 +1045,12 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="reminder-pop" id="reminderPop" role="alert" aria-live="assertive">
+    <h2 id="reminderPopTitle">喝水啦</h2>
+    <p id="reminderPopBody">休息一下，喝 500 ml 水吧。</p>
+    <button class="primary" id="dismissReminderBtn" type="button">知道了</button>
+  </div>
 
   <div class="permission-modal hidden" id="permissionModal" role="dialog" aria-modal="true" aria-labelledby="permissionTitle">
     <div class="permission-card">
@@ -971,6 +1095,10 @@
     const permissionHelp = document.getElementById("permissionHelp");
     const allowNotificationBtn = document.getElementById("allowNotificationBtn");
     const closePermissionBtn = document.getElementById("closePermissionBtn");
+    const reminderPop = document.getElementById("reminderPop");
+    const reminderPopTitle = document.getElementById("reminderPopTitle");
+    const reminderPopBody = document.getElementById("reminderPopBody");
+    const dismissReminderBtn = document.getElementById("dismissReminderBtn");
 
     const healthTips = [
       "多喝水可以幫助代謝，減脂期也更容易控制食慾。",
@@ -983,12 +1111,23 @@
       "每天穩定補水，皮膚和嘴唇也比較不容易乾。"
     ];
 
+    const dogTricks = ["trick-hop", "trick-wiggle", "trick-spin"];
+    const dogLines = [
+      "摸摸頭，喝口水！",
+      "我有乖乖等你喔。",
+      "水瓶在這裡，別裝沒看見。",
+      "今天也要亮晶晶！",
+      "再喝一點點就很棒。",
+      "我跳一下，你喝一下。"
+    ];
+
     const todayKey = () => new Date().toISOString().slice(0, 10);
 
     let state = loadState();
     let tickTimer = null;
     let toastTimer = null;
     let titleTimer = null;
+    let reminderPopTimer = null;
     let tipIndex = 0;
     const originalTitle = document.title;
 
@@ -1101,13 +1240,25 @@
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification(title, {
           body,
+          icon: "water-reminder-icon.png",
+          badge: "water-reminder-icon.png",
           tag: "water-reminder",
-          renotify: true
+          renotify: true,
+          requireInteraction: true,
+          silent: false
         });
         return true;
       }
 
       return false;
+    }
+
+    function showReminderPopup(title, body) {
+      reminderPopTitle.textContent = title;
+      reminderPopBody.textContent = body;
+      reminderPop.classList.add("show");
+      window.clearTimeout(reminderPopTimer);
+      reminderPopTimer = window.setTimeout(() => reminderPop.classList.remove("show"), 9000);
     }
 
     function startReminder() {
@@ -1123,6 +1274,7 @@
       bounceDog();
       speech.textContent = "喝水啦！";
       showToast("喝一瓶水，身體會很開心。");
+      showReminderPopup("喝水啦", "休息一下，喝 500 ml 水吧。");
       flashTitle();
 
       sendBrowserNotification("喝水啦", "休息一下，喝 500 ml 水吧。");
@@ -1158,6 +1310,16 @@
       window.setTimeout(() => dogWrap.classList.remove("jump"), 1100);
     }
 
+    function playDogInteraction() {
+      const trick = dogTricks[Math.floor(Math.random() * dogTricks.length)];
+      const line = dogLines[Math.floor(Math.random() * dogLines.length)];
+      dogWrap.classList.remove("jump", ...dogTricks);
+      void dogWrap.offsetWidth;
+      speech.textContent = line;
+      dogWrap.classList.add(trick);
+      window.setTimeout(() => dogWrap.classList.remove(trick), 1100);
+    }
+
     function addBottle() {
       state.bottles += 1;
       saveState();
@@ -1191,6 +1353,7 @@
       for (let i = 0; i < visibleBottles; i += 1) {
         const item = document.createElement("span");
         item.className = "tiny-bottle";
+        item.innerHTML = '<span class="tiny-cap"></span><span class="tiny-side"></span><span class="tiny-dog"></span>';
         bottleLog.appendChild(item);
       }
     }
@@ -1290,6 +1453,7 @@
       bounceDog();
       speech.textContent = "測試成功！";
       flashTitle();
+      showReminderPopup("測試通知", "這是頁面內提醒。如果系統通知沒彈，通常是 Windows 或瀏覽器通知設定擋住了。");
       const notified = allowed && sendBrowserNotification("測試通知", "如果你看到這條通知，瀏覽器提醒就打開了。");
       showToast(notified ? "測試通知已送出。" : "通知未開，只測試頁面動畫。");
     });
@@ -1297,6 +1461,8 @@
     advanceBtn.addEventListener("click", advanceReminder);
     addBottleBtn.addEventListener("click", addBottle);
     resetBtn.addEventListener("click", resetToday);
+    dogWrap.addEventListener("click", playDogInteraction);
+    dismissReminderBtn.addEventListener("click", () => reminderPop.classList.remove("show"));
 
     updatePermissionLabel();
     renderWater();
