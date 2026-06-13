@@ -1,0 +1,1786 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23090b10'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%235eead4' stroke-width='4'/%3E%3Cpath d='M32 10v12M32 42v12M10 32h12M42 32h12' stroke='%23f8fafc' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23f97316'/%3E%3C/svg%3E" />
+  <title>FPS 靈敏度轉換器</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090b10;
+      --panel: #121722;
+      --panel-2: #171d29;
+      --line: #263042;
+      --text: #f4f7fb;
+      --muted: #9ba8bb;
+      --soft: #d6deea;
+      --accent: #32d5a4;
+      --accent-2: #4db3ff;
+      --warn: #ffc46b;
+      --danger: #ff6d8c;
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 16% 8%, rgba(50, 213, 164, 0.16), transparent 28rem),
+        radial-gradient(circle at 88% 12%, rgba(77, 179, 255, 0.14), transparent 30rem),
+        linear-gradient(135deg, #080a0f 0%, #10131b 48%, #080a0f 100%);
+      color: var(--text);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0 42px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      background: linear-gradient(145deg, rgba(50, 213, 164, 0.22), rgba(77, 179, 255, 0.12));
+      box-shadow: inset 0 0 22px rgba(50, 213, 164, 0.16);
+      flex: 0 0 auto;
+    }
+
+    .reticle {
+      width: 25px;
+      height: 25px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .reticle::before,
+    .reticle::after {
+      content: "";
+      position: absolute;
+      background: var(--accent);
+    }
+
+    .reticle::before {
+      width: 31px;
+      height: 2px;
+      left: -5px;
+      top: 10px;
+    }
+
+    .reticle::after {
+      width: 2px;
+      height: 31px;
+      left: 10px;
+      top: -5px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 52px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 7px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 720px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 0 13px;
+      color: var(--soft);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.055);
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(50, 213, 164, 0.9);
+    }
+
+    .trainer {
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.05fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .trainer-stage {
+      min-height: 260px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 8px;
+      background:
+        linear-gradient(rgba(13, 17, 25, 0.82), rgba(13, 17, 25, 0.94)),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 44px),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 44px);
+      box-shadow: var(--shadow);
+      transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .trainer-stage.is-training {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      min-height: 100vh;
+      border: 0;
+      border-radius: 0;
+      background: #111827;
+    }
+
+    .trainer-stage.is-training::before {
+      content: none;
+    }
+
+    .trainer-exit {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      z-index: 4;
+      min-width: 78px;
+      height: 38px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(7, 10, 16, 0.42);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+    }
+
+    .trainer-stage.is-training .trainer-exit {
+      display: inline-flex;
+    }
+
+    .trainer-clock {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      z-index: 4;
+      min-width: 112px;
+      min-height: 38px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 14px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(7, 10, 16, 0.42);
+      backdrop-filter: blur(10px);
+      font-weight: 900;
+    }
+
+    .trainer-stage.is-training.show-clock .trainer-clock {
+      display: inline-flex;
+    }
+
+    .trainer-stage.reaction-wait {
+      cursor: pointer;
+      border-color: rgba(255, 109, 140, 0.38);
+      background: #c94747;
+      box-shadow: 0 28px 80px rgba(255, 109, 140, 0.12);
+    }
+
+    .trainer-stage.reaction-ready {
+      cursor: pointer;
+      border-color: rgba(50, 213, 164, 0.55);
+      background: #2fbf71;
+      box-shadow: 0 28px 80px rgba(50, 213, 164, 0.16);
+    }
+
+    .trainer-stage.reaction-too-soon {
+      cursor: pointer;
+      border-color: rgba(255, 196, 107, 0.48);
+      background: #d8962f;
+    }
+
+    .trainer-stage.reaction-done {
+      cursor: pointer;
+      border-color: rgba(77, 179, 255, 0.45);
+      background: #2f86d8;
+    }
+
+    .trainer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .trainer-target {
+      width: 42px;
+      height: 42px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      border: 2px solid rgba(255, 255, 255, 0.86);
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--danger) 0 22%, transparent 24% 45%, rgba(50, 213, 164, 0.36) 47% 100%);
+      box-shadow: 0 0 28px rgba(255, 109, 140, 0.22);
+      cursor: crosshair;
+    }
+
+    .trainer-read {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .cue {
+      max-width: 520px;
+      color: var(--text);
+      font-size: clamp(22px, 4vw, 42px);
+      font-weight: 900;
+      line-height: 1.15;
+    }
+
+    .trainer-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .trainer-stats.two {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .trainer-stats.reaction-only {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .trainer-stat {
+      min-height: 70px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .trainer-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .trainer-stat strong {
+      font-size: 20px;
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel,
+    .result-panel {
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 8px;
+      background: rgba(18, 23, 34, 0.88);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel {
+      padding: 20px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .mini {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    label {
+      color: var(--soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    input,
+    select {
+      width: 100%;
+      height: 48px;
+      color: var(--text);
+      background: #0d1119;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      outline: none;
+      padding: 0 13px;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: rgba(50, 213, 164, 0.75);
+      box-shadow: 0 0 0 3px rgba(50, 213, 164, 0.14);
+      background: #101620;
+    }
+
+    input[type="number"] {
+      appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+
+    .unit {
+      position: absolute;
+      top: 50%;
+      right: 13px;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 13px;
+    }
+
+    .has-unit input {
+      padding-right: 62px;
+    }
+
+    .target-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(110px, 0.42fr);
+      gap: 14px;
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 18px 0;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 4px;
+      gap: 4px;
+      background: #0d1119;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .mode {
+      height: 38px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .mode.active {
+      color: #06110e;
+      background: var(--accent);
+      font-weight: 800;
+    }
+
+    .custom-box {
+      display: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .custom-box.show {
+      display: grid;
+    }
+
+    .result-panel {
+      overflow: hidden;
+    }
+
+    .result-hero {
+      padding: 22px;
+      min-height: 226px;
+      background:
+        linear-gradient(rgba(18, 23, 34, 0.8), rgba(18, 23, 34, 0.96)),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 48px),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 48px);
+      position: relative;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .result-hero::after {
+      content: "";
+      width: 120px;
+      height: 120px;
+      border: 1px solid rgba(50, 213, 164, 0.42);
+      border-radius: 50%;
+      position: absolute;
+      right: 26px;
+      top: 30px;
+      box-shadow: inset 0 0 40px rgba(50, 213, 164, 0.08), 0 0 42px rgba(50, 213, 164, 0.12);
+    }
+
+    .result-label {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .big-value {
+      margin: 0;
+      font-size: clamp(48px, 8vw, 82px);
+      line-height: 0.94;
+      letter-spacing: 0;
+      color: var(--text);
+      max-width: 72%;
+      overflow-wrap: anywhere;
+    }
+
+    .result-game {
+      margin: 12px 0 0;
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .copy-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .action {
+      height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      padding: 0 14px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .action.primary {
+      color: #05100d;
+      border-color: transparent;
+      background: var(--accent);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .stat {
+      min-height: 96px;
+      padding: 18px;
+      background: rgba(18, 23, 34, 0.98);
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .stat strong {
+      font-size: 24px;
+      overflow-wrap: anywhere;
+    }
+
+    .fov-section,
+    .ads-section {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .fov-result,
+    .ads-result {
+      padding: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 8px;
+      background:
+        linear-gradient(145deg, rgba(77, 179, 255, 0.13), transparent 34%),
+        rgba(18, 23, 34, 0.88);
+      box-shadow: var(--shadow);
+    }
+
+    .ads-result {
+      background:
+        linear-gradient(145deg, rgba(50, 213, 164, 0.13), transparent 34%),
+        rgba(18, 23, 34, 0.88);
+    }
+
+    .fov-value,
+    .ads-value {
+      margin: 14px 0 8px;
+      font-size: clamp(44px, 7vw, 76px);
+      line-height: 0.96;
+      overflow-wrap: anywhere;
+    }
+
+    .formula-card {
+      margin-top: 16px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .formula-card code {
+      color: var(--soft);
+      overflow-wrap: anywhere;
+    }
+
+    .notes {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .note {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .note h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .note p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .history {
+      margin-top: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .history-head,
+    .history-item {
+      display: grid;
+      grid-template-columns: 1.1fr 0.8fr 0.8fr;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+    }
+
+    .history-head {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .history-item {
+      color: var(--soft);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 14px;
+    }
+
+    .history-item:last-child {
+      border-bottom: 0;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      padding: 12px 14px;
+      border: 1px solid rgba(50, 213, 164, 0.38);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(13, 17, 25, 0.94);
+      box-shadow: var(--shadow);
+      transform: translateY(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .warning {
+      color: var(--warn);
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .layout,
+      .trainer,
+      .fov-section,
+      .ads-section,
+      .notes {
+        grid-template-columns: 1fr;
+      }
+
+      .big-value {
+        max-width: 100%;
+      }
+
+      .result-hero::after {
+        opacity: 0.28;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .shell {
+        width: min(100% - 22px, 1180px);
+        padding-top: 22px;
+      }
+
+      .grid,
+      .target-row,
+      .custom-box,
+      .stats,
+      .trainer-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .history-head,
+      .history-item {
+        grid-template-columns: 1fr;
+      }
+
+      .copy-row {
+        flex-direction: column;
+      }
+
+      .action {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true"><div class="reticle"></div></div>
+        <div>
+          <h1>FPS 靈敏度轉換器</h1>
+          <p class="subtitle">用滑鼠 DPI、遊戲 yaw 係數與 cm/360 換算不同 FPS 的等效靈敏度，適合 CS2、Valorant、Apex、Overwatch 2 等遊戲。</p>
+        </div>
+      </div>
+      <div class="status-pill"><span class="status-dot"></span><span>即時計算</span></div>
+    </header>
+
+    <section class="trainer" aria-label="FPS training mini games">
+      <form class="panel" id="trainerPanel">
+        <div class="trainer-head">
+          <h2>小遊戲訓練欄</h2>
+          <span class="mini">熱身 / 反應</span>
+        </div>
+        <div class="grid">
+          <div class="field">
+            <label for="trainerMode">訓練模式</label>
+            <select id="trainerMode">
+              <option value="warmup" selected>練槍熱身</option>
+              <option value="reaction">反應測試</option>
+            </select>
+          </div>
+          <div class="field" id="trainerDurationField">
+            <label for="trainerDuration">時間</label>
+            <select id="trainerDuration">
+              <option value="15">15 秒</option>
+              <option value="30" selected>30 秒</option>
+              <option value="60">60 秒</option>
+            </select>
+          </div>
+        </div>
+        <div class="copy-row">
+          <button class="action primary" type="button" id="startTrainer">開始</button>
+          <button class="action" type="button" id="resetTrainer">重置</button>
+        </div>
+        <div class="trainer-stats" id="trainerStats">
+          <div class="trainer-stat" id="trainerScoreStat">
+            <span>分數</span>
+            <strong id="trainerScore">0</strong>
+          </div>
+          <div class="trainer-stat" id="trainerMiddleStat">
+            <span id="trainerMiddleLabel">命中率</span>
+            <strong id="trainerMiddleValue">0%</strong>
+          </div>
+          <div class="trainer-stat" id="trainerReactionStat">
+            <span>反應</span>
+            <strong id="trainerReaction">-- ms</strong>
+          </div>
+        </div>
+      </form>
+      <div class="trainer-stage" id="trainerStage">
+        <div class="trainer-clock" id="trainerClock">剩餘 30 秒</div>
+        <button class="trainer-exit" id="trainerExit" type="button">退出</button>
+        <button class="trainer-target" id="trainerTarget" type="button" aria-label="target"></button>
+        <div class="trainer-read">
+          <div class="cue" id="trainerCue">選一個模式後按開始</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout" aria-label="靈敏度轉換工具">
+      <form class="panel" id="converter">
+        <div class="panel-title">
+          <h2>轉換設定</h2>
+          <span class="mini" id="formulaLabel">360 / DPI / yaw</span>
+        </div>
+
+        <div class="segmented" role="group" aria-label="輸入模式">
+          <button class="mode active" type="button" data-mode="sensitivity">靈敏度</button>
+          <button class="mode" type="button" data-mode="cm360">cm/360</button>
+          <button class="mode" type="button" data-mode="custom">自訂係數</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="grid">
+          <div class="field">
+            <label for="fromGame">來源遊戲</label>
+            <select id="fromGame"></select>
+          </div>
+          <div class="field">
+            <label for="toGame">目標遊戲</label>
+            <select id="toGame"></select>
+          </div>
+          <div class="field">
+            <label for="fromDpi">來源 DPI</label>
+            <div class="input-wrap has-unit">
+              <input id="fromDpi" type="number" min="1" step="1" value="800" inputmode="decimal" />
+              <span class="unit">DPI</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="toDpi">目標 DPI</label>
+            <div class="input-wrap has-unit">
+              <input id="toDpi" type="number" min="1" step="1" value="800" inputmode="decimal" />
+              <span class="unit">DPI</span>
+            </div>
+          </div>
+          <div class="field" id="sensField">
+            <label for="fromSens">來源靈敏度</label>
+            <input id="fromSens" type="number" min="0.0001" step="0.001" value="1.2" inputmode="decimal" />
+          </div>
+          <div class="field" id="cmField">
+            <label for="cmInput">直接輸入 cm/360</label>
+            <div class="input-wrap has-unit">
+              <input id="cmInput" type="number" min="0.1" step="0.01" value="43.30" inputmode="decimal" />
+              <span class="unit">cm</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="custom-box" id="customBox">
+          <div class="field">
+            <label for="customFromYaw">來源 yaw</label>
+            <input id="customFromYaw" type="number" min="0.0001" step="0.0001" value="0.022" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="customToYaw">目標 yaw</label>
+            <input id="customToYaw" type="number" min="0.0001" step="0.0001" value="0.07" inputmode="decimal" />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="target-row">
+          <div class="field">
+            <label for="rounding">小數位數</label>
+            <select id="rounding">
+              <option value="2">2 位</option>
+              <option value="3" selected>3 位</option>
+              <option value="4">4 位</option>
+              <option value="5">5 位</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="invertDpi">DPI 同步</label>
+            <select id="invertDpi">
+              <option value="separate" selected>分開</option>
+              <option value="same">相同</option>
+            </select>
+          </div>
+        </div>
+      </form>
+
+      <aside class="result-panel" aria-live="polite">
+        <div class="result-hero">
+          <p class="result-label">目標靈敏度</p>
+          <p class="big-value" id="targetSens">0.377</p>
+          <p class="result-game" id="targetGameName">Valorant</p>
+          <div class="copy-row">
+            <button class="action primary" type="button" id="copySens">複製數值</button>
+            <button class="action" type="button" id="swapGames">交換遊戲</button>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <span>cm/360</span>
+            <strong id="cm360">43.30</strong>
+          </div>
+          <div class="stat">
+            <span>來源 eDPI</span>
+            <strong id="fromEdpi">960</strong>
+          </div>
+          <div class="stat">
+            <span>目標 eDPI</span>
+            <strong id="toEdpi">302</strong>
+          </div>
+          <div class="stat">
+            <span>轉換倍率</span>
+            <strong id="ratio">0.314x</strong>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="fov-section" aria-label="FOV match sensitivity converter">
+      <form class="panel" id="fovConverter">
+        <div class="panel-title">
+          <h2>FOV Match 轉換設定</h2>
+          <span class="mini">monitor distance 0%</span>
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label for="fovFromGame">來源遊戲</label>
+            <select id="fovFromGame"></select>
+          </div>
+          <div class="field">
+            <label for="fovToGame">目標遊戲</label>
+            <select id="fovToGame"></select>
+          </div>
+          <div class="field">
+            <label for="fovFromSens">來源靈敏度</label>
+            <input id="fovFromSens" type="number" min="0.0001" step="0.001" value="0.9" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="fovDigits">小數位數</label>
+            <select id="fovDigits">
+              <option value="2">2 位</option>
+              <option value="3" selected>3 位</option>
+              <option value="4">4 位</option>
+              <option value="5">5 位</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fovFromYaw">來源 yaw</label>
+            <input id="fovFromYaw" type="number" min="0.0001" step="0.0001" value="0.022" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="fovToYaw">目標 yaw</label>
+            <input id="fovToYaw" type="number" min="0.0001" step="0.0001" value="0.07" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="fovFrom">來源水平 FOV</label>
+            <div class="input-wrap has-unit">
+              <input id="fovFrom" type="number" min="1" max="179" step="0.01" value="106.26" inputmode="decimal" />
+              <span class="unit">deg</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="fovTo">目標水平 FOV</label>
+            <div class="input-wrap has-unit">
+              <input id="fovTo" type="number" min="1" max="179" step="0.01" value="103" inputmode="decimal" />
+              <span class="unit">deg</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="formula-card">
+          <strong>公式：</strong>
+          <code>目標靈敏度 = 來源靈敏度 x 來源 yaw / 目標 yaw x tan(目標水平FOV / 2) / tan(來源水平FOV / 2)</code>
+        </div>
+      </form>
+
+      <aside class="fov-result" aria-live="polite">
+        <p class="result-label">FOV Match 目標靈敏度</p>
+        <p class="fov-value" id="fovTargetSens">0.267</p>
+        <p class="result-game" id="fovTargetGameName">Valorant</p>
+        <div class="stats">
+          <div class="stat">
+            <span>360 轉換值</span>
+            <strong id="fovBaseSens">0.283</strong>
+          </div>
+          <div class="stat">
+            <span>FOV 補正倍率</span>
+            <strong id="fovScale">0.944x</strong>
+          </div>
+          <div class="stat">
+            <span>來源 FOV</span>
+            <strong id="fovSourceLabel">106.26</strong>
+          </div>
+          <div class="stat">
+            <span>目標 FOV</span>
+            <strong id="fovTargetLabel">103</strong>
+          </div>
+        </div>
+        <div class="copy-row">
+          <button class="action primary" type="button" id="copyFovSens">複製 FOV 數值</button>
+          <button class="action" type="button" id="resetFovCsVal">CS2 0.9 -> Valorant</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="ads-section" aria-label="ADS and scoped sensitivity converter">
+      <form class="panel" id="adsConverter">
+        <div class="panel-title">
+          <h2>ADS / 開鏡一致設定</h2>
+          <span class="mini">hipfire to scope</span>
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label for="adsGame">遊戲</label>
+            <select id="adsGame"></select>
+          </div>
+          <div class="field">
+            <label for="adsPreset">角色 / 倍率鏡</label>
+            <select id="adsPreset"></select>
+          </div>
+          <div class="field">
+            <label for="adsDigits">小數位數</label>
+            <select id="adsDigits">
+              <option value="2">2 位</option>
+              <option value="3" selected>3 位</option>
+              <option value="4">4 位</option>
+              <option value="5">5 位</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="adsHipSens">腰射靈敏度</label>
+            <input id="adsHipSens" type="number" min="0.0001" step="0.001" value="4" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="adsMode">輸出模式</label>
+            <select id="adsMode">
+              <option value="multiplier" selected>ADS 倍率 / 百分比</option>
+              <option value="sens">獨立 ADS 靈敏度</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="adsHipFov">腰射水平 FOV</label>
+            <div class="input-wrap has-unit">
+              <input id="adsHipFov" type="number" min="1" max="179" step="0.01" value="103" inputmode="decimal" />
+              <span class="unit">deg</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="adsScopeFov">開鏡水平 FOV</label>
+            <div class="input-wrap has-unit">
+              <input id="adsScopeFov" type="number" min="1" max="179" step="0.01" value="51.47" inputmode="decimal" />
+              <span class="unit">deg</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="formula-card">
+          <strong>公式：</strong>
+          <code>ADS 倍率 = tan(開鏡水平FOV / 2) / tan(腰射水平FOV / 2)</code>
+          <br />
+          <span>如果遊戲的 ADS 欄位是百分比，就把倍率乘以 100。若遊戲要填獨立 ADS 靈敏度，就用腰射靈敏度乘以倍率。</span>
+        </div>
+      </form>
+
+      <aside class="ads-result" aria-live="polite">
+        <p class="result-label">建議 ADS 倍率</p>
+        <p class="ads-value" id="adsMultiplier">0.386</p>
+        <p class="result-game" id="adsPresetName">鬥陣特攻 2 - 奪命女開鏡</p>
+        <div class="stats">
+          <div class="stat">
+            <span>ADS 百分比</span>
+            <strong id="adsPercent">38.56%</strong>
+          </div>
+          <div class="stat">
+            <span>獨立 ADS 靈敏度</span>
+            <strong id="adsSens">1.542</strong>
+          </div>
+          <div class="stat">
+            <span>腰射 FOV</span>
+            <strong id="adsHipLabel">103</strong>
+          </div>
+          <div class="stat">
+            <span>開鏡 FOV</span>
+            <strong id="adsScopeLabel">51.47</strong>
+          </div>
+        </div>
+        <div class="copy-row">
+          <button class="action primary" type="button" id="copyAdsValue">複製 ADS 值</button>
+          <button class="action" type="button" id="resetAdsWidow">黑百合範例</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="notes" aria-label="說明">
+      <article class="note">
+        <h3>計算基準</h3>
+        <p>工具以 cm/360 當中介值。只要兩款遊戲的 yaw 係數正確，換算後轉一圈所需的滑鼠距離會一致。</p>
+      </article>
+      <article class="note">
+        <h3>提醒</h3>
+        <p>FOV、ADS 倍鏡、Windows 指標加速、遊戲內原始輸入設定都可能改變手感。這裡換算的是腰射水平 360 度靈敏度。</p>
+      </article>
+    </section>
+
+    <section class="history" aria-label="常用遊戲係數">
+      <div class="history-head">
+        <span>遊戲</span>
+        <span>yaw</span>
+        <span>備註</span>
+      </div>
+      <div id="gameTable"></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast">已複製</div>
+
+  <script>
+    const games = [
+      { name: "CS2 / CS:GO", yaw: 0.022, note: "Source 系列基準" },
+      { name: "Apex Legends", yaw: 0.022, note: "Source 系列基準" },
+      { name: "Team Fortress 2", yaw: 0.022, note: "Source 系列基準" },
+      { name: "Valorant", yaw: 0.07, note: "約為 CS 靈敏度 x 0.314" },
+      { name: "Overwatch 2", yaw: 0.0066, note: "約為 CS 靈敏度 x 3.333" },
+      { name: "Rainbow Six Siege", yaw: 0.02, note: "腰射基準" },
+      { name: "Quake / Diabotical", yaw: 0.022, note: "經典 yaw" },
+      { name: "Custom", yaw: 0.022, note: "使用下方自訂 yaw" }
+    ];
+
+    const fovGames = [
+      { name: "CS2 / CS:GO", yaw: 0.022, fov: 106.26 },
+      { name: "Valorant", yaw: 0.07, fov: 103 },
+      { name: "Apex Legends", yaw: 0.022, fov: 106.26 },
+      { name: "Overwatch 2", yaw: 0.0066, fov: 103 },
+      { name: "Rainbow Six Siege", yaw: 0.02, fov: 90 },
+      { name: "Custom", yaw: 0.022, fov: 103 }
+    ];
+
+    const adsData = {
+      "鬥陣特攻 2": [
+        { name: "安娜開鏡", hipFov: 103, scopeFov: 51.47 },
+        { name: "艾西開鏡", hipFov: 103, scopeFov: 65.8 },
+        { name: "奪命女開鏡", hipFov: 103, scopeFov: 51.47 },
+        { name: "艾姆雷 Take Aim 縮放近似", hipFov: 103, scopeFov: 65.8 },
+        { name: "卡西迪威能縮放近似", hipFov: 103, scopeFov: 65.8 },
+        { name: "鬥陣自訂縮放狀態", hipFov: 103, scopeFov: 65.8 }
+      ],
+      "虹彩六號：圍攻行動": [
+        { name: "1.0x 倍率鏡", hipFov: 90, scopeFov: 60 },
+        { name: "1.5x 倍率鏡", hipFov: 90, scopeFov: 42.1 },
+        { name: "2.0x 倍率鏡", hipFov: 90, scopeFov: 32 },
+        { name: "2.5x 倍率鏡", hipFov: 90, scopeFov: 25.6 },
+        { name: "3.0x 倍率鏡", hipFov: 90, scopeFov: 21.2 },
+        { name: "3.5x 倍率鏡", hipFov: 90, scopeFov: 18.2 },
+        { name: "4.0x 倍率鏡", hipFov: 90, scopeFov: 16 },
+        { name: "5.0x 倍率鏡", hipFov: 90, scopeFov: 12.8 },
+        { name: "12.0x 倍率鏡", hipFov: 90, scopeFov: 5.35 }
+      ],
+      "Apex 英雄": [
+        { name: "1x HCOG / 全像", hipFov: 106.26, scopeFov: 90 },
+        { name: "1x 數位威脅", hipFov: 106.26, scopeFov: 90 },
+        { name: "2x HCOG 格鬥者", hipFov: 106.26, scopeFov: 53.13 },
+        { name: "1x-2x 可變倍率 1x", hipFov: 106.26, scopeFov: 90 },
+        { name: "1x-2x 可變倍率 2x", hipFov: 106.26, scopeFov: 53.13 },
+        { name: "3x HCOG 遊騎兵", hipFov: 106.26, scopeFov: 35.47 },
+        { name: "2x-4x 可變倍率 2x", hipFov: 106.26, scopeFov: 53.13 },
+        { name: "2x-4x 可變倍率 4x", hipFov: 106.26, scopeFov: 26.87 },
+        { name: "4x-8x 狙擊鏡 4x", hipFov: 106.26, scopeFov: 26.87 },
+        { name: "4x-8x 狙擊鏡 8x", hipFov: 106.26, scopeFov: 13.45 },
+        { name: "6x 狙擊鏡", hipFov: 106.26, scopeFov: 17.94 },
+        { name: "6x-10x 數位狙擊威脅 6x", hipFov: 106.26, scopeFov: 17.94 },
+        { name: "6x-10x 數位狙擊威脅 10x", hipFov: 106.26, scopeFov: 10.8 }
+      ],
+      "自訂": [
+        { name: "自訂開鏡", hipFov: 103, scopeFov: 51.47 }
+      ]
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const fromGame = $("fromGame");
+    const toGame = $("toGame");
+    const fromDpi = $("fromDpi");
+    const toDpi = $("toDpi");
+    const fromSens = $("fromSens");
+    const cmInput = $("cmInput");
+    const customFromYaw = $("customFromYaw");
+    const customToYaw = $("customToYaw");
+    const rounding = $("rounding");
+    const invertDpi = $("invertDpi");
+    const customBox = $("customBox");
+    const sensField = $("sensField");
+    const cmField = $("cmField");
+    const formulaLabel = $("formulaLabel");
+    const fovFromGame = $("fovFromGame");
+    const fovToGame = $("fovToGame");
+    const fovFromSens = $("fovFromSens");
+    const fovDigits = $("fovDigits");
+    const fovFromYaw = $("fovFromYaw");
+    const fovToYaw = $("fovToYaw");
+    const fovFrom = $("fovFrom");
+    const fovTo = $("fovTo");
+    const trainerMode = $("trainerMode");
+    const trainerDuration = $("trainerDuration");
+    const trainerDurationField = $("trainerDurationField");
+    const trainerTarget = $("trainerTarget");
+    const trainerCue = $("trainerCue");
+    const trainerStage = $("trainerStage");
+    const trainerClock = $("trainerClock");
+    const trainerExit = $("trainerExit");
+    const trainerStats = $("trainerStats");
+    const trainerScoreStat = $("trainerScoreStat");
+    const trainerMiddleLabel = $("trainerMiddleLabel");
+    const trainerMiddleValue = $("trainerMiddleValue");
+    const trainerReactionStat = $("trainerReactionStat");
+    const adsGame = $("adsGame");
+    const adsPreset = $("adsPreset");
+    const adsDigits = $("adsDigits");
+    const adsHipSens = $("adsHipSens");
+    const adsMode = $("adsMode");
+    const adsHipFov = $("adsHipFov");
+    const adsScopeFov = $("adsScopeFov");
+    let mode = "sensitivity";
+
+    function addOptions(select, defaultIndex) {
+      games.forEach((game, index) => {
+        const option = document.createElement("option");
+        option.value = String(index);
+        option.textContent = game.name;
+        select.appendChild(option);
+      });
+      select.value = String(defaultIndex);
+    }
+
+    function addFovOptions(select, defaultIndex) {
+      fovGames.forEach((game, index) => {
+        const option = document.createElement("option");
+        option.value = String(index);
+        option.textContent = game.name;
+        select.appendChild(option);
+      });
+      select.value = String(defaultIndex);
+    }
+
+    function addAdsGames(select, defaultIndex) {
+      Object.keys(adsData).forEach((game, index) => {
+        const option = document.createElement("option");
+        option.value = String(index);
+        option.textContent = game;
+        select.appendChild(option);
+      });
+      select.value = String(defaultIndex);
+    }
+
+    function selectedAdsGameName() {
+      return Object.keys(adsData)[Number(adsGame.value)] || "鬥陣特攻 2";
+    }
+
+    function selectedAdsList() {
+      return adsData[selectedAdsGameName()] || adsData["鬥陣特攻 2"];
+    }
+
+    function populateAdsPresets(defaultIndex = 0) {
+      adsPreset.innerHTML = "";
+      selectedAdsList().forEach((preset, index) => {
+        const option = document.createElement("option");
+        option.value = String(index);
+        option.textContent = preset.name;
+        adsPreset.appendChild(option);
+      });
+      adsPreset.value = String(Math.min(defaultIndex, selectedAdsList().length - 1));
+    }
+
+    function currentAdsPreset() {
+      return selectedAdsList()[Number(adsPreset.value)] || selectedAdsList()[0];
+    }
+
+    function format(value, digits = Number(rounding.value)) {
+      if (!Number.isFinite(value)) return "0";
+      return Number(value.toFixed(digits)).toString();
+    }
+
+    function formatFov(value, digits = Number(fovDigits.value)) {
+      if (!Number.isFinite(value)) return "0";
+      return Number(value.toFixed(digits)).toString();
+    }
+
+    function formatAds(value, digits = Number(adsDigits.value)) {
+      if (!Number.isFinite(value)) return "0";
+      return Number(value.toFixed(digits)).toString();
+    }
+
+    function validNumber(input, fallback) {
+      const value = Number(input.value);
+      return Number.isFinite(value) && value > 0 ? value : fallback;
+    }
+
+    function gameYaw(select, customInput) {
+      const game = games[Number(select.value)];
+      if (game.name === "Custom") return validNumber(customInput, 0.022);
+      return game.yaw;
+    }
+
+    function calculate() {
+      if (invertDpi.value === "same") toDpi.value = fromDpi.value;
+
+      const sourceDpi = validNumber(fromDpi, 800);
+      const targetDpi = validNumber(toDpi, sourceDpi);
+      const sourceYaw = gameYaw(fromGame, customFromYaw);
+      const targetYaw = gameYaw(toGame, customToYaw);
+      const sourceSens = validNumber(fromSens, 1);
+      const directCm = validNumber(cmInput, 40);
+
+      const cm360 = mode === "cm360"
+        ? directCm
+        : (360 / (sourceDpi * sourceSens * sourceYaw)) * 2.54;
+
+      const targetSens = 360 / ((cm360 / 2.54) * targetDpi * targetYaw);
+      const fromEdpi = sourceDpi * sourceSens;
+      const toEdpi = targetDpi * targetSens;
+      const ratio = targetSens / sourceSens;
+      const targetGame = games[Number(toGame.value)];
+
+      $("targetSens").textContent = format(targetSens);
+      $("targetGameName").textContent = targetGame.name === "Custom" ? "自訂遊戲" : targetGame.name;
+      $("cm360").textContent = format(cm360, 2);
+      $("fromEdpi").textContent = format(fromEdpi, 0);
+      $("toEdpi").textContent = format(toEdpi, 0);
+      $("ratio").textContent = `${format(ratio, 3)}x`;
+
+      if (mode !== "cm360") cmInput.value = format(cm360, 2);
+      formulaLabel.textContent = `yaw: ${format(sourceYaw, 4)} -> ${format(targetYaw, 4)}`;
+    }
+
+    function degreesToRadians(value) {
+      return value * Math.PI / 180;
+    }
+
+    function syncFovPreset(select, yawInput, fovInput) {
+      const preset = fovGames[Number(select.value)];
+      if (preset.name !== "Custom") {
+        yawInput.value = preset.yaw;
+        fovInput.value = preset.fov;
+      }
+    }
+
+    function calculateFovMatch() {
+      const sourceSens = validNumber(fovFromSens, 0.9);
+      const sourceYaw = validNumber(fovFromYaw, 0.022);
+      const targetYaw = validNumber(fovToYaw, 0.07);
+      const sourceFov = Math.min(179, Math.max(1, validNumber(fovFrom, 106.26)));
+      const targetFov = Math.min(179, Math.max(1, validNumber(fovTo, 103)));
+      const base360Sens = sourceSens * sourceYaw / targetYaw;
+      const fovScale = Math.tan(degreesToRadians(targetFov / 2)) / Math.tan(degreesToRadians(sourceFov / 2));
+      const targetSens = base360Sens * fovScale;
+      const targetGame = fovGames[Number(fovToGame.value)];
+
+      $("fovTargetSens").textContent = formatFov(targetSens);
+      $("fovTargetGameName").textContent = targetGame.name === "Custom" ? "自訂遊戲" : targetGame.name;
+      $("fovBaseSens").textContent = formatFov(base360Sens);
+      $("fovScale").textContent = `${formatFov(fovScale, 3)}x`;
+      $("fovSourceLabel").textContent = formatFov(sourceFov, 2);
+      $("fovTargetLabel").textContent = formatFov(targetFov, 2);
+    }
+
+    function syncAdsPreset() {
+      const preset = currentAdsPreset();
+      if (selectedAdsGameName() !== "自訂") {
+        adsHipFov.value = preset.hipFov;
+        adsScopeFov.value = preset.scopeFov;
+      }
+    }
+
+    function calculateAdsMatch() {
+      const hipSens = validNumber(adsHipSens, 4);
+      const hipFov = Math.min(179, Math.max(1, validNumber(adsHipFov, 103)));
+      const scopeFov = Math.min(179, Math.max(1, validNumber(adsScopeFov, 51.47)));
+      const multiplier = Math.tan(degreesToRadians(scopeFov / 2)) / Math.tan(degreesToRadians(hipFov / 2));
+      const percent = multiplier * 100;
+      const independentAdsSens = hipSens * multiplier;
+      const preset = currentAdsPreset();
+
+      $("adsMultiplier").textContent = adsMode.value === "sens"
+        ? formatAds(independentAdsSens)
+        : formatAds(multiplier);
+      $("adsPresetName").textContent = `${selectedAdsGameName()} - ${preset.name}`;
+      $("adsPercent").textContent = `${formatAds(percent, 2)}%`;
+      $("adsSens").textContent = formatAds(independentAdsSens);
+      $("adsHipLabel").textContent = formatAds(hipFov, 2);
+      $("adsScopeLabel").textContent = formatAds(scopeFov, 2);
+    }
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      document.querySelectorAll(".mode").forEach((button) => {
+        button.classList.toggle("active", button.dataset.mode === mode);
+      });
+      sensField.style.display = mode === "cm360" ? "none" : "grid";
+      cmField.style.display = mode === "sensitivity" ? "none" : "grid";
+      customBox.classList.toggle("show", mode === "custom" || games[Number(fromGame.value)].name === "Custom" || games[Number(toGame.value)].name === "Custom");
+      calculate();
+    }
+
+    function showToast(text) {
+      const toast = $("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 1500);
+    }
+
+    function populateTable() {
+      const table = $("gameTable");
+      table.innerHTML = "";
+      games.filter((game) => game.name !== "Custom").forEach((game) => {
+        const row = document.createElement("div");
+        row.className = "history-item";
+        row.innerHTML = `<span>${game.name}</span><span>${game.yaw}</span><span>${game.note}</span>`;
+        table.appendChild(row);
+      });
+    }
+
+    const trainerState = {
+      running: false,
+      score: 0,
+      shots: 0,
+      hits: 0,
+      reactionStart: 0,
+      reactionPhase: "idle",
+      reactionTimes: [],
+      timer: null,
+      timeout: null
+    };
+
+    function updateTrainerStats(reactionText = null) {
+      const accuracy = trainerState.shots === 0 ? 0 : Math.round((trainerState.hits / trainerState.shots) * 100);
+      $("trainerScore").textContent = String(trainerState.score);
+      if (trainerMode.value === "reaction") {
+        const average = trainerState.reactionTimes.length
+          ? Math.round(trainerState.reactionTimes.reduce((total, value) => total + value, 0) / trainerState.reactionTimes.length)
+          : null;
+        trainerMiddleValue.textContent = average === null ? "-- ms" : `${average} ms`;
+      } else {
+        trainerMiddleValue.textContent = `${accuracy}%`;
+      }
+      if (reactionText !== null) $("trainerReaction").textContent = reactionText;
+    }
+
+    function syncTrainerModeUi() {
+      const isReaction = trainerMode.value === "reaction";
+      trainerDurationField.classList.toggle("is-hidden", isReaction);
+      trainerScoreStat.classList.toggle("is-hidden", isReaction);
+      trainerReactionStat.classList.toggle("is-hidden", !isReaction);
+      trainerStats.classList.toggle("two", !isReaction);
+      trainerStats.classList.toggle("reaction-only", isReaction);
+      trainerMiddleLabel.textContent = isReaction ? "平均反應時間" : "命中率";
+      if (!trainerState.running) {
+        trainerTarget.style.opacity = isReaction ? "0" : "1";
+        trainerCue.textContent = isReaction ? "按開始後測 5 次反應" : "選一個模式後按開始";
+        updateTrainerStats("-- ms");
+      }
+    }
+
+    function moveTrainerTarget() {
+      const rect = trainerStage.getBoundingClientRect();
+      const size = 42;
+      const x = Math.max(size, Math.random() * (rect.width - size * 2) + size);
+      const y = Math.max(size, Math.random() * (rect.height - size * 2) + size);
+      trainerTarget.style.left = `${x}px`;
+      trainerTarget.style.top = `${y}px`;
+    }
+
+    function setReactionStage(phase) {
+      trainerState.reactionPhase = phase;
+      trainerStage.classList.toggle("reaction-wait", phase === "waiting");
+      trainerStage.classList.toggle("reaction-ready", phase === "ready");
+      trainerStage.classList.toggle("reaction-too-soon", phase === "too-soon");
+      trainerStage.classList.toggle("reaction-done", phase === "done");
+    }
+
+    function armReactionRound() {
+      window.clearTimeout(trainerState.timeout);
+      setReactionStage("waiting");
+      trainerTarget.style.opacity = "0";
+      trainerCue.textContent = `第 ${trainerState.reactionTimes.length + 1} / 5 次，等綠色出現`;
+      trainerState.timeout = window.setTimeout(() => {
+        setReactionStage("ready");
+        trainerCue.textContent = "現在點擊！";
+        trainerState.reactionStart = performance.now();
+      }, 1400 + Math.random() * 2600);
+    }
+
+    function resetTrainer() {
+      trainerState.running = false;
+      trainerState.score = 0;
+      trainerState.shots = 0;
+      trainerState.hits = 0;
+      trainerState.reactionStart = 0;
+      trainerState.reactionTimes = [];
+      setReactionStage("idle");
+      window.clearInterval(trainerState.timer);
+      window.clearTimeout(trainerState.timeout);
+      trainerStage.classList.remove("is-training");
+      trainerStage.classList.remove("show-clock");
+      document.body.style.overflow = "";
+      trainerClock.textContent = `剩餘 ${trainerDuration.value} 秒`;
+      trainerTarget.style.opacity = trainerMode.value === "reaction" ? "0" : "1";
+      trainerCue.textContent = trainerMode.value === "reaction" ? "按開始後測 5 次反應" : "選一個模式後按開始";
+      updateTrainerStats("-- ms");
+    }
+
+    function startTrainer() {
+      resetTrainer();
+      trainerState.running = true;
+      trainerStage.classList.add("is-training");
+      document.body.style.overflow = "hidden";
+      const mode = trainerMode.value;
+      if (mode === "reaction") {
+        trainerCue.textContent = "第 1 / 5 次，等綠色出現";
+        armReactionRound();
+        return;
+      }
+
+      const duration = Number(trainerDuration.value) * 1000;
+      const startTime = performance.now();
+      trainerStage.classList.add("show-clock");
+      trainerClock.textContent = `剩餘 ${Math.ceil(duration / 1000)} 秒`;
+      trainerCue.textContent = "點擊目標熱身";
+      if (mode === "warmup") {
+        setReactionStage("idle");
+        trainerTarget.style.opacity = "1";
+        moveTrainerTarget();
+      }
+      trainerState.timer = window.setInterval(() => {
+        const remaining = Math.max(0, Math.ceil((duration - (performance.now() - startTime)) / 1000));
+        trainerClock.textContent = `剩餘 ${remaining} 秒`;
+        if (performance.now() - startTime >= duration) {
+          trainerState.running = false;
+          window.clearInterval(trainerState.timer);
+          window.clearTimeout(trainerState.timeout);
+          setReactionStage("idle");
+          trainerStage.classList.remove("is-training");
+          trainerStage.classList.remove("show-clock");
+          document.body.style.overflow = "";
+          trainerTarget.style.opacity = "1";
+          trainerCue.textContent = "完成";
+        }
+      }, 120);
+    }
+
+    addOptions(fromGame, 0);
+    addOptions(toGame, 3);
+    addFovOptions(fovFromGame, 0);
+    addFovOptions(fovToGame, 1);
+    addAdsGames(adsGame, 0);
+    populateAdsPresets(2);
+    syncAdsPreset();
+    populateTable();
+    setMode("sensitivity");
+    syncTrainerModeUi();
+    calculateFovMatch();
+    calculateAdsMatch();
+
+    document.querySelectorAll("input, select").forEach((element) => {
+      element.addEventListener("input", () => {
+        customBox.classList.toggle("show", mode === "custom" || games[Number(fromGame.value)].name === "Custom" || games[Number(toGame.value)].name === "Custom");
+        calculate();
+        calculateFovMatch();
+        calculateAdsMatch();
+      });
+      element.addEventListener("change", () => {
+        customBox.classList.toggle("show", mode === "custom" || games[Number(fromGame.value)].name === "Custom" || games[Number(toGame.value)].name === "Custom");
+        calculate();
+        calculateFovMatch();
+        calculateAdsMatch();
+      });
+    });
+
+    fovFromGame.addEventListener("change", () => {
+      syncFovPreset(fovFromGame, fovFromYaw, fovFrom);
+      calculateFovMatch();
+    });
+
+    fovToGame.addEventListener("change", () => {
+      syncFovPreset(fovToGame, fovToYaw, fovTo);
+      calculateFovMatch();
+    });
+
+    adsGame.addEventListener("change", () => {
+      populateAdsPresets(0);
+      syncAdsPreset();
+      calculateAdsMatch();
+    });
+
+    adsPreset.addEventListener("change", () => {
+      syncAdsPreset();
+      calculateAdsMatch();
+    });
+
+    $("startTrainer").addEventListener("click", startTrainer);
+    $("resetTrainer").addEventListener("click", resetTrainer);
+    trainerExit.addEventListener("click", (event) => {
+      event.stopPropagation();
+      resetTrainer();
+      syncTrainerModeUi();
+    });
+    trainerMode.addEventListener("change", () => {
+      resetTrainer();
+      syncTrainerModeUi();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && trainerStage.classList.contains("is-training")) {
+        resetTrainer();
+        syncTrainerModeUi();
+      }
+    });
+
+    function handleTrainerPress() {
+      if (!trainerState.running) return;
+
+      if (trainerMode.value === "reaction") {
+        if (trainerState.reactionPhase === "waiting") {
+          window.clearTimeout(trainerState.timeout);
+          trainerState.shots += 1;
+          setReactionStage("too-soon");
+          trainerCue.textContent = "太快了！點一下重新開始";
+          updateTrainerStats("太快");
+          return;
+        }
+
+        if (trainerState.reactionPhase === "ready") {
+          const reaction = Math.round(performance.now() - trainerState.reactionStart);
+          trainerState.shots += 1;
+          trainerState.hits += 1;
+          trainerState.score += 1;
+          trainerState.reactionTimes.push(reaction);
+          setReactionStage("done");
+          if (trainerState.reactionTimes.length >= 5) {
+            trainerState.running = false;
+            trainerStage.classList.remove("is-training");
+            document.body.style.overflow = "";
+            const average = Math.round(trainerState.reactionTimes.reduce((total, value) => total + value, 0) / trainerState.reactionTimes.length);
+            trainerCue.textContent = `完成，平均 ${average} ms`;
+            trainerTarget.style.opacity = "0";
+          } else {
+            trainerCue.textContent = `${reaction} ms，點一下繼續`;
+          }
+          updateTrainerStats(`${reaction} ms`);
+          return;
+        }
+
+        if (trainerState.reactionPhase === "too-soon" || trainerState.reactionPhase === "done") {
+          if (!trainerState.running) return;
+          armReactionRound();
+        }
+        return;
+      }
+
+      trainerState.shots += 1;
+      updateTrainerStats();
+    }
+
+    trainerStage.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      handleTrainerPress();
+    });
+
+    trainerTarget.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+      event.preventDefault();
+      if (!trainerState.running) return;
+      const currentMode = trainerMode.value;
+      if (currentMode === "reaction") {
+        handleTrainerPress();
+        return;
+      }
+      trainerState.shots += 1;
+      trainerState.hits += 1;
+      trainerState.score += 1;
+      moveTrainerTarget();
+      updateTrainerStats();
+    });
+
+    document.querySelectorAll(".mode").forEach((button) => {
+      button.addEventListener("click", () => setMode(button.dataset.mode));
+    });
+
+    $("swapGames").addEventListener("click", () => {
+      const oldFrom = fromGame.value;
+      fromGame.value = toGame.value;
+      toGame.value = oldFrom;
+      calculate();
+      showToast("已交換來源與目標");
+    });
+
+    $("copySens").addEventListener("click", async () => {
+      const value = $("targetSens").textContent;
+      try {
+        await navigator.clipboard.writeText(value);
+        showToast(`已複製 ${value}`);
+      } catch (error) {
+        showToast("瀏覽器不允許自動複製");
+      }
+    });
+    $("copyFovSens").addEventListener("click", async () => {
+      const value = $("fovTargetSens").textContent;
+      try {
+        await navigator.clipboard.writeText(value);
+        showToast(`已複製 ${value}`);
+      } catch (error) {
+        showToast("瀏覽器不允許自動複製");
+      }
+    });
+
+    $("resetFovCsVal").addEventListener("click", () => {
+      fovFromGame.value = "0";
+      fovToGame.value = "1";
+      fovFromSens.value = "0.9";
+      syncFovPreset(fovFromGame, fovFromYaw, fovFrom);
+      syncFovPreset(fovToGame, fovToYaw, fovTo);
+      calculateFovMatch();
+      showToast("CS2 0.9 -> Valorant");
+    });
+
+    $("copyAdsValue").addEventListener("click", async () => {
+      const value = adsMode.value === "sens"
+        ? $("adsSens").textContent
+        : $("adsMultiplier").textContent;
+      try {
+        await navigator.clipboard.writeText(value);
+        showToast(`已複製 ${value}`);
+      } catch (error) {
+        showToast("瀏覽器不允許自動複製");
+      }
+    });
+
+    $("resetAdsWidow").addEventListener("click", () => {
+      adsGame.value = "0";
+      populateAdsPresets(2);
+      adsHipSens.value = "4";
+      adsMode.value = "multiplier";
+      syncAdsPreset();
+      calculateAdsMatch();
+      showToast("已套用奪命女開鏡範例");
+    });
+  </script>
+</body>
+</html>
+

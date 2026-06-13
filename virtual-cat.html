@@ -1,0 +1,223 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f7d8c8'/%3E%3Cpath d='M18 29 13 16l13 7M46 29l5-13-13 7' fill='%23f2a7a0' stroke='%232b2523' stroke-width='4' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='34' r='19' fill='%23fff7ef' stroke='%232b2523' stroke-width='4'/%3E%3Ccircle cx='25' cy='33' r='3' fill='%232b2523'/%3E%3Ccircle cx='39' cy='33' r='3' fill='%232b2523'/%3E%3Cpath d='M31 39h2l-1 2zM25 45c4 3 10 3 14 0' fill='none' stroke='%232b2523' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<title>🐱 小貓</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Segoe UI','Microsoft JhengHei',sans-serif;
+  background:linear-gradient(160deg,#fdf6f0,#f5ebe0,#e8ddd0);
+  min-height:100vh;display:flex;justify-content:center;align-items:center;
+  user-select:none;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 55% 25%,rgba(255,255,255,.45),transparent 55%),
+             radial-gradient(ellipse at 30% 75%,rgba(200,180,160,.08),transparent 45%);
+  pointer-events:none;z-index:0;
+}
+.container{
+  position:relative;z-index:1;background:rgba(255,255,255,.82);
+  backdrop-filter:blur(18px);border-radius:32px;padding:22px 26px 16px;
+  box-shadow:0 16px 48px rgba(80,60,40,.08),0 2px 6px rgba(0,0,0,.03);
+  text-align:center;max-width:420px;width:94%;
+}
+.header{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:2px}
+.title{font-size:1.5rem;font-weight:700;color:#5c4033;letter-spacing:.02em}
+.currency{display:flex;align-items:center;gap:3px;background:#fff3e0;border-radius:16px;padding:4px 12px;font-size:.85rem;font-weight:600;color:#bf360c}
+.cat-name{font-size:.95rem;color:#8d6e63;margin-bottom:2px;cursor:pointer;transition:color .3s}
+.cat-name:hover{color:#6d4c41}.cat-name::after{content:' ✏️';font-size:.6rem;opacity:0;transition:opacity .3s}.cat-name:hover::after{opacity:1}
+.xp-row{margin-bottom:5px}.xp-info{display:flex;justify-content:space-between;font-size:.72rem;color:#a1887f;margin-bottom:1px;padding:0 3px}
+.xp-bar-bg{height:6px;background:#e0d6cc;border-radius:2px;overflow:hidden}
+.xp-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#ffd54f,#ffb300);transition:width .5s}
+.tab-nav{display:flex;gap:3px;margin-bottom:4px}
+.tab-btn{flex:1;padding:6px 3px;border:none;border-radius:11px;font-size:.8rem;font-weight:600;cursor:pointer;background:#f0ebe4;color:#8d7b6e;transition:all .25s;font-family:inherit}
+.tab-btn.active{background:#8d6e63;color:#fff}.tab-btn:hover:not(.active){background:#e0d6cc}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* ====== CAT ====== */
+.cat-stage{position:relative;width:200px;height:200px;margin:0 auto 2px;display:flex;align-items:center;justify-content:center}
+.cat{position:relative;width:120px;height:130px;transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+.cat.happy{transform:scale(1.05)}.cat.hungry{transform:scale(.93)}
+.cat.bouncing{animation:bb .5s ease-in-out}.cat.spin{animation:ss .65s ease-in-out}
+@keyframes bb{0%,100%{transform:translateY(0)}30%{transform:translateY(-14px)}50%{transform:translateY(0)}70%{transform:translateY(-5px)}}
+@keyframes ss{0%{transform:rotate(0)}25%{transform:rotate(8deg)}50%{transform:rotate(-6deg)}75%{transform:rotate(3deg)}100%{transform:rotate(0)}}
+
+/* Head - big round */
+.head{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100px;height:88px;background:linear-gradient(175deg,#faf7f3,#f0e9df);border-radius:50px 50px 42px 42px;box-shadow:0 3px 8px rgba(0,0,0,.05);z-index:2}
+
+/* Ears */
+.ear{position:absolute;top:-2px;width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-bottom:22px solid #f0e9df;z-index:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.08))}
+.ear::after{content:'';position:absolute;top:5px;left:-8px;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:12px solid #e8c4b4}
+.ear.l{left:16px;transform:rotate(-8deg)}.ear.r{right:16px;transform:rotate(8deg)}
+
+/* Eyes - big cute */
+.eyes{position:absolute;top:28px;left:50%;transform:translateX(-50%);width:52px;display:flex;justify-content:space-between;z-index:3}
+.eye{width:16px;height:18px;background:radial-gradient(circle at 40% 35%,#555,#222 70%);border-radius:50%;position:relative;box-shadow:0 0 0 1.5px rgba(0,0,0,.04)}
+.eye::after{content:'';position:absolute;width:5px;height:5px;background:#fff;border-radius:50%;top:3px;left:4px}
+.cat.happy .eye{height:4px;border-radius:2px;margin-top:7px}.cat.happy .eye::after{display:none}
+.cat.hungry .eye{width:17px;height:19px}
+.cat.sleepy .eye{height:3px;border-radius:2px;margin-top:7px}.cat.sleepy .eye::after{display:none}
+
+/* Nose & Mouth */
+.nose{position:absolute;top:44px;left:50%;transform:translateX(-50%);width:10px;height:7px;background:#e4a8a8;border-radius:50%;z-index:3}
+.mouth{position:absolute;top:50px;left:50%;transform:translateX(-50%);width:16px;height:6px;border-bottom:2px solid #c0b0a0;border-radius:0 0 9px 9px;z-index:3}
+.cat.happy .mouth{width:20px;height:9px;border-radius:0 0 12px 12px}
+.cat.hungry .mouth{width:15px;height:8px;border-bottom:none;border-top:2px solid #c0b0a0;top:58px;border-radius:8px 8px 2px 2px}
+
+/* Whiskers */
+.w{position:absolute;height:1.5px;background:#c8c0b8;border-radius:2px;z-index:3}
+.w1{top:44px;left:-10px;width:22px;transform:rotate(-4deg)}.w2{top:50px;left:-12px;width:20px;transform:rotate(6deg)}
+.w3{top:44px;right:-10px;width:22px;transform:rotate(4deg)}.w4{top:50px;right:-12px;width:20px;transform:rotate(-6deg)}
+
+/* Body */
+.body{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:78px;height:58px;background:linear-gradient(175deg,#f0e9df,#e5dbce);border-radius:36px 36px 16px 16px;box-shadow:0 4px 8px rgba(0,0,0,.04);z-index:1}
+.body::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:40px;height:24px;background:#faf7f3;border-radius:20px 20px 8px 8px}
+
+/* Paws */
+.paw{position:absolute;bottom:0;width:18px;height:13px;background:#faf7f3;border-radius:9px 9px 5px 5px;z-index:2;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.paw::after{content:'';position:absolute;top:2px;left:50%;transform:translateX(-50%);width:6px;height:3px;background:#e4b0b0;border-radius:1.5px}
+.paw.l{left:20px}.paw.r{right:20px}
+
+/* Tail */
+.tail{position:absolute;bottom:16px;right:-30px;width:40px;height:22px;border:6px solid #e5dbce;border-color:#e5dbce transparent transparent transparent;border-radius:50% 50% 0 0;transform:rotate(30deg);transform-origin:left bottom;animation:tw 3s ease-in-out infinite}
+@keyframes tw{0%,100%{transform:rotate(30deg)}30%{transform:rotate(50deg)}70%{transform:rotate(12deg)}}
+.cat.happy .tail{animation:tf .5s ease-in-out infinite}@keyframes tf{0%,100%{transform:rotate(30deg)}50%{transform:rotate(55deg)}}
+
+/* Sleep */
+.cat.sleepy .head{animation:sBlink 2.5s ease-in-out infinite}
+@keyframes sBlink{0%,90%,100%{transform:translateX(-50%) scaleY(1)}95%{transform:translateX(-50%) scaleY(.05)}}
+.cat.grooming .head{animation:gNod .9s ease-in-out 3}
+@keyframes gNod{0%,100%{transform:translateX(-50%) rotate(0)}30%{transform:translateX(-50%) rotate(5deg)}70%{transform:translateX(-50%) rotate(-3deg)}}
+
+/* Accessories */
+.acc{position:absolute;pointer-events:none;z-index:10;font-size:1.3rem}
+.acc-h{top:-28px;left:50%;transform:translateX(-50%);font-size:1.7rem}
+.acc-b{top:12px;left:-10px;font-size:1rem}
+.acc-g{top:25px;left:50%;transform:translateX(-50%);font-size:.95rem}
+.acc-s{top:58px;left:50%;transform:translateX(-50%);font-size:1rem}
+
+/* Speech */
+.sp{position:absolute;top:-40px;left:50%;transform:translateX(-50%);background:#fff;border-radius:12px;padding:4px 10px;font-size:.72rem;color:#5c4033;box-shadow:0 2px 6px rgba(0,0,0,.04);opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;z-index:20}
+.sp.show{opacity:1}.sp::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid #fff}
+.zzz-c{position:absolute;top:-12px;right:-4px;pointer-events:none}.zz{position:absolute;font-size:.8rem;opacity:0;animation:zf 2s ease-out infinite}
+.zz:nth-child(1){animation-delay:0s}.zz:nth-child(2){animation-delay:.6s;font-size:1.1rem}.zz:nth-child(3){animation-delay:1.2s;font-size:1.3rem}
+@keyframes zf{0%{opacity:0;transform:translate(0,0)}30%{opacity:.6}100%{opacity:0;transform:translate(12px,-40px)}}
+
+/* Laser */
+.ld{position:absolute;width:18px;height:18px;background:radial-gradient(circle,#ff1744 20%,transparent 70%);border-radius:50%;pointer-events:auto;z-index:50;animation:lp .5s infinite alternate;display:none;cursor:pointer}
+@keyframes lp{from{transform:scale(1);opacity:.85}to{transform:scale(1.35);opacity:.45}}
+
+/* Stats */
+.stats{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.sr{display:flex;align-items:center;gap:8px}.si{font-size:1.1rem;width:24px;text-align:center}
+.sl{font-size:.78rem;color:#8d7b6e;width:30px;text-align:left}
+.sbg{flex:1;height:8px;background:#e0d6cc;border-radius:3px;overflow:hidden}
+.sf{height:100%;border-radius:3px;transition:width .5s}
+.sf.hg{background:linear-gradient(90deg,#ff8a65,#ff7043)}.sf.hp{background:linear-gradient(90deg,#f48fb1,#ec407a)}.sf.en{background:linear-gradient(90deg,#81d4fa,#29b6f6)}.sf.lo{background:#ef5350!important}
+
+/* Buttons */
+.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.btn{display:flex;align-items:center;justify-content:center;gap:3px;padding:9px 4px;border:none;border-radius:13px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;color:#fff}
+.btn:active{transform:scale(.94)}.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+.b1{background:linear-gradient(135deg,#ff8a65,#ff7043)}.b2{background:linear-gradient(135deg,#f48fb1,#ec407a)}.b3{background:linear-gradient(135deg,#ce93d8,#ab47bc)}.b4{background:linear-gradient(135deg,#81d4fa,#29b6f6)}.b5{background:linear-gradient(135deg,#4fc3f7,#0288d1)}.b6{background:linear-gradient(135deg,#ffb74d,#f57c00)}
+.btn:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 2px 8px rgba(0,0,0,.08);transform:translateY(-1px)}
+
+/* Shop */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:6px}
+.si2{background:#faf8ff;border-radius:12px;padding:9px 6px;text-align:center;cursor:pointer;transition:all .25s;border:2px solid transparent}
+.si2:hover{border-color:#ce93d8;transform:translateY(-2px);box-shadow:0 2px 10px rgba(149,117,205,.08)}
+.si2.ow{border-color:#81c784;background:#f1f8e9}.si2.eq{border-color:#ffb74d;background:#fff8e1}
+.se{font-size:1.6rem;display:block;margin-bottom:1px}.sn{font-size:.68rem;font-weight:600;color:#5c4033}
+.sp2{font-size:.62rem;color:#bf360c}.so{font-size:.6rem;color:#43a047}.seq{font-size:.6rem;color:#bf360c;font-weight:600}
+
+/* Ach */
+.alist{margin-bottom:5px;max-height:180px;overflow-y:auto}
+.ai{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:10px;margin-bottom:2px;background:#f5f5f5;font-size:.66rem;color:#9e9e9e;transition:all .3s}
+.ai.un{background:#fff8e1;color:#5c4033}.aicon{font-size:1.1rem;width:26px;text-align:center}
+.aii{flex:1;text-align:left}.ain{font-weight:600;font-size:.68rem}.aid{font-size:.58rem;color:#999}.ai.un .aid{color:#bcaaa4}
+
+/* Float / Levelup */
+.fe{position:fixed;pointer-events:none;font-size:1.3rem;animation:fu 1s ease-out forwards;z-index:100}
+@keyframes fu{0%{opacity:1;transform:translateY(0) scale(1)}50%{opacity:.75;transform:translateY(-24px) scale(1.15)}100%{opacity:0;transform:translateY(-56px) scale(.5)}}
+.lu{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,#ffd54f,#ffb300);color:#5c4033;font-size:1.1rem;font-weight:700;padding:10px 22px;border-radius:16px;z-index:200;pointer-events:none;box-shadow:0 5px 20px rgba(255,179,0,.3);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}.lu.show{transform:translate(-50%,-50%) scale(1)}
+@media(max-width:400px){.container{padding:14px 10px 12px}.cat-stage{width:170px;height:170px}.btn{font-size:.64rem;padding:6px 1px}.actions{gap:4px}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header"><span class="title">🐱 小貓</span><span class="currency">🥫 <span id="cc">0</span></span></div>
+<div class="cat-name" id="cn" title="改名">咪咪</div>
+<div class="xp-row"><div class="xp-info"><span>Lv.<span id="lv">1</span></span><span><span id="xc">0</span>/<span id="xm">100</span>XP</span></div><div class="xp-bar-bg"><div class="xp-bar-fill" id="xb"></div></div></div>
+<div class="tab-nav"><button class="tab-btn active" onclick="st('home')">🏠 小貓</button><button class="tab-btn" onclick="st('shop')">🛍️ 商店</button><button class="tab-btn" onclick="st('ach')">🏆 成就</button></div>
+<div class="tab-content active" id="tab-home">
+<div class="cat-stage" id="cs"><div class="cat" id="cat">
+<div class="ld" id="ld"></div><div class="sp" id="sp"></div>
+<div class="zzz-c" id="zz" style="display:none"><span class="zz">💤</span><span class="zz">💤</span><span class="zz">💤</span></div>
+<div class="acc acc-h" id="ah"></div><div class="acc acc-b" id="ab"></div><div class="acc acc-g" id="ag"></div><div class="acc acc-s" id="as"></div>
+<div class="head"><div class="ear l"></div><div class="ear r"></div><div class="eyes"><div class="eye"></div><div class="eye"></div></div><div class="nose"></div><div class="mouth"></div><div class="w w1"></div><div class="w w2"></div><div class="w w3"></div><div class="w w4"></div></div>
+<div class="body"></div><div class="paw l"></div><div class="paw r"></div><div class="tail"></div>
+</div></div>
+<div class="stats"><div class="sr"><span class="si">🍖</span><span class="sl">飢餓</span><div class="sbg"><div class="sf hg" id="hb"></div></div></div><div class="sr"><span class="si">😊</span><span class="sl">快樂</span><div class="sbg"><div class="sf hp" id="pb"></div></div></div><div class="sr"><span class="si">⚡</span><span class="sl">精力</span><div class="sbg"><div class="sf en" id="eb"></div></div></div></div>
+<div class="actions"><button class="btn b1" onclick="fd(event)">🐟 餵食</button><button class="btn b6" onclick="sk(event)">🍘 零食</button><button class="btn b2" onclick="pl(event)">🧶 玩耍</button><button class="btn b3" onclick="pt(event)">🤚 摸摸</button><button class="btn b5" onclick="bh(event)">🛁 洗澡</button><button class="btn b4" onclick="sp2()">💤 睡覺</button></div>
+<button class="btn b3" style="margin-top:5px;width:100%;background:#ef5350;font-size:.74rem" onclick="lg()">🔴 雷射筆</button>
+</div>
+<div class="tab-content" id="tab-shop"><p style="font-size:.68rem;color:#a1887f;margin-bottom:4px">🥫 買配件</p><div class="sgrid" id="sg"></div><button class="btn" style="width:100%;background:#bdbdbd;font-size:.7rem" onclick="ua()">🚫 脫掉</button></div>
+<div class="tab-content" id="tab-ach"><div class="alist" id="al"></div></div>
+</div>
+<script>
+const S={hunger:80,happiness:80,energy:80,name:'咪咪',isSleeping:false,xp:0,level:1,cans:0,totalFed:0,totalPlayed:0,totalPetted:0,totalBaths:0,inventory:[],equipped:{},cooldowns:{},unlockedAch:[]};
+const ld2=localStorage.getItem('vcat4');if(ld2){try{Object.assign(S,JSON.parse(ld2))}catch(e){}}
+function xl(lv){return 80+lv*25}
+const $=id=>document.getElementById(id);
+const cat=$('cat'),cn=$('cn'),sp=$('sp'),zz=$('zz'),ld=$('ld'),cs=$('cs');
+const hb=$('hb'),pb=$('pb'),eb=$('eb'),xb=$('xb'),xc=$('xc'),xm=$('xm'),lv=$('lv'),cc=$('cc');
+const btns=document.querySelectorAll('#tab-home .btn');
+cn.textContent=S.name;
+
+const si=[{id:'h1',name:'牛仔帽',emoji:'🤠',price:30,slot:'hat'},{id:'h2',name:'皇冠',emoji:'👑',price:60,slot:'hat'},{id:'h3',name:'派對帽',emoji:'🥳',price:25,slot:'hat'},{id:'b1',name:'蝴蝶結',emoji:'🎀',price:20,slot:'bow'},{id:'b2',name:'緞帶',emoji:'🌸',price:20,slot:'bow'},{id:'g1',name:'墨鏡',emoji:'😎',price:40,slot:'glasses'},{id:'s1',name:'紅圍巾',emoji:'🧣',price:35,slot:'scarf'},{id:'s2',name:'藍圍巾',emoji:'🦋',price:35,slot:'scarf'}];
+const sm={hat:'ah',bow:'ab',glasses:'ag',scarf:'as'};
+function rsg(){const g=$('sg');g.innerHTML=si.map(i=>{const o=S.inventory.includes(i.id);const e=S.equipped[i.slot]===i.id;let c='';if(e)c='eq';else if(o)c='ow';return'<div class="si2 '+c+'" onclick="be(\''+i.id+'\')"><span class="se">'+i.emoji+'</span><span class="sn">'+i.name+'</span>'+(o?(e?'<span class="seq">穿戴中</span>':'<span class="so">點擊穿戴</span>'):'<span class="sp2">🥫'+i.price+'</span>')+'</div>'}).join('')}
+function be(id){const i=si.find(x=>x.id===id);if(!i)return;if(S.inventory.includes(id)){if(S.equipped[i.slot]===id){delete S.equipped[i.slot];sy('脫掉了 '+i.name+'~')}else{S.equipped[i.slot]=id;sy('戴上 '+i.name+'！')}}else{if(S.cans<i.price){sy('罐頭不夠...還差'+(i.price-S.cans)+'🥫');return}S.cans-=i.price;S.inventory.push(id);S.equipped[i.slot]=id;sy('買了 '+i.name+'！');ck()}ua2();rsg();sv()}
+function ua(){S.equipped={};sy('脫掉了！');ua2();rsg();sv()}
+function ua2(){for(const s in sm){const el=$(sm[s]);const id=S.equipped[s];el.textContent=id?(si.find(x=>x.id===id)||{}).emoji||'':''}}
+
+const ac=[{id:'f5',name:'小吃貨',desc:'餵食5次',icon:'🐟',c:()=>S.totalFed>=5},{id:'f20',name:'大胃王',desc:'餵食20次',icon:'🍖',c:()=>S.totalFed>=20},{id:'p5',name:'玩耍高手',desc:'玩耍5次',icon:'🧶',c:()=>S.totalPlayed>=5},{id:'t10',name:'摸摸達人',desc:'摸摸10次',icon:'✋',c:()=>S.totalPetted>=10},{id:'b3',name:'愛乾淨',desc:'洗澡3次',icon:'🛁',c:()=>S.totalBaths>=3},{id:'l5',name:'成長茁壯',desc:'Lv.5',icon:'⭐',c:()=>S.level>=5},{id:'l10',name:'貓王',desc:'Lv.10',icon:'👑',c:()=>S.level>=10},{id:'s3',name:'時尚貓咪',desc:'買3件配件',icon:'🛍️',c:()=>S.inventory.length>=3},{id:'a100',name:'完美貓生',desc:'三項全100',icon:'💯',c:()=>S.hunger===100&&S.happiness===100&&S.energy===100}];
+function ra(){$('al').innerHTML=ac.map(a=>{const u=S.unlockedAch.includes(a.id);return'<div class="ai'+(u?' un':'')+'"><span class="aicon">'+(u?a.icon:'🔒')+'</span><div class="aii"><span class="ain">'+a.name+'</span><br><span class="aid">'+a.desc+'</span></div></div>'}).join('')}
+function ck(){let c=false;ac.forEach(a=>{if(!S.unlockedAch.includes(a.id)&&a.c()){S.unlockedAch.push(a.id);c=true;se('🏆',innerWidth/2,innerHeight/2);sy('🏆'+a.name+'！')}});if(c){ra();sv()}}
+function ax(amt){S.xp+=amt;const n=xl(S.level);while(S.xp>=n){S.xp-=n;S.level++;S.cans+=10;slu();xm.textContent=xl(S.level);uu()}if(S.xp<0)S.xp=0;uu();ck()}
+function slu(){const el=document.createElement('div');el.className='lu';el.textContent='🎉Lv.'+S.level+'!';document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('show'));setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),500)},1800)}
+setInterval(()=>{if(S.isSleeping)return;S.hunger=Math.max(0,S.hunger-.22);S.happiness=Math.max(0,S.happiness-.1);S.energy=Math.max(0,S.energy-.15);uu();sv()},3000);
+setInterval(()=>{for(const k in S.cooldowns){if(S.cooldowns[k]>0)S.cooldowns[k]--}},1000);
+
+function uu(){hb.style.width=S.hunger+'%';pb.style.width=S.happiness+'%';eb.style.width=S.energy+'%';[hb,pb,eb].forEach(b=>b.classList.remove('lo'));if(S.hunger<25)hb.classList.add('lo');if(S.happiness<25)pb.classList.add('lo');if(S.energy<25)eb.classList.add('lo');const n=xl(S.level);xb.style.width=(S.xp/n*100)+'%';xc.textContent=S.xp;xm.textContent=n;lv.textContent=S.level;cc.textContent=S.cans;cat.classList.remove('happy','hungry','sleepy','grooming');zz.style.display='none';if(S.isSleeping){cat.classList.add('sleepy');zz.style.display='block'}else if(S.hunger<25){cat.classList.add('hungry')}else if(S.happiness>60&&S.energy>40){cat.classList.add('happy')}btns.forEach(b=>{if(b.classList.contains('b4'))return;b.disabled=S.isSleeping})}
+function ub(){document.querySelector('.b4').innerHTML=S.isSleeping?'☀️ 叫醒':'💤 睡覺'}
+function sv(){localStorage.setItem('vcat4',JSON.stringify(S))}
+let st2;function sy(t){sp.textContent=t;sp.classList.add('show');clearTimeout(st2);st2=setTimeout(()=>sp.classList.remove('show'),2200)}
+function se(emoji,x,y){const el=document.createElement('span');el.className='fe';el.textContent=emoji;el.style.left=x+'px';el.style.top=y+'px';document.body.appendChild(el);el.addEventListener('animationend',()=>el.remove())}
+function gc(e){return{x:(e&&e.clientX)||200,y:(e&&e.clientY)||300}}
+const ph={fd:['好好吃~🐟','還想再吃！','謝謝！','吃飽飽~'],sk:['零食最棒！🍘','卡滋卡滋~','幸福~'],pl:['喵嗚！','好好玩~','抓抓！','轉圈圈~'],pt:['呼嚕嚕...','好舒服~','再摸摸~','喵~♥'],bh:['不喜歡水...😾','香香的~','乾淨了'],sp2:['晚安...💤','zzz...','睏了...'],hu:['好餓...😿','想吃東西...','罐罐？'],le:['好累...','想睡...'],lh:['無聊...','陪我玩~']};
+function rp(c){const a=ph[c];return a[Math.floor(Math.random()*a.length)]}
+function fd(e){if(S.isSleeping||(S.cooldowns.fd||0)>0)return;S.cooldowns.fd=3;S.hunger=Math.min(100,S.hunger+22);S.energy=Math.min(100,S.energy+5);S.totalFed++;sy(rp('fd'));cat.classList.add('bouncing');setTimeout(()=>cat.classList.remove('bouncing'),500);var c=gc(e||event);se('🐟',c.x,c.y);ax(12);S.cans+=2;cc.textContent=S.cans;uu();sv();ck()}
+function sk(e){if(S.isSleeping||(S.cooldowns.sk||0)>0)return;S.cooldowns.sk=4;S.hunger=Math.min(100,S.hunger+12);S.happiness=Math.min(100,S.happiness+8);S.totalFed++;sy(rp('sk'));cat.classList.add('bouncing');setTimeout(()=>cat.classList.remove('bouncing'),500);var c=gc(e||event);se('🍘',c.x,c.y);ax(8);S.cans+=1;uu();sv();ck()}
+function pl(e){if(S.isSleeping||(S.cooldowns.pl||0)>0)return;if(S.energy<10){sy(rp('le'));return}S.cooldowns.pl=3;S.happiness=Math.min(100,S.happiness+22);S.energy=Math.max(0,S.energy-10);S.hunger=Math.max(0,S.hunger-4);S.totalPlayed++;sy(rp('pl'));cat.classList.add('bouncing');setTimeout(()=>cat.classList.remove('bouncing'),500);var c=gc(e||event);se('🧶',c.x,c.y);ax(10);S.cans+=1;uu();sv();ck()}
+function pt(e){if(S.isSleeping||(S.cooldowns.pt||0)>0)return;S.cooldowns.pt=2;S.happiness=Math.min(100,S.happiness+16);S.totalPetted++;sy(rp('pt'));cat.classList.add('happy');setTimeout(()=>{cat.classList.remove('happy');uu()},1800);var c=gc(e||event);se('♥',c.x,c.y);ax(6);uu();sv();ck()}
+function bh(e){if(S.isSleeping||(S.cooldowns.bh||0)>0)return;S.cooldowns.bh=6;S.happiness=Math.min(100,S.happiness+10);S.energy=Math.max(0,S.energy-8);S.totalBaths++;sy(rp('bh'));cat.classList.add('spin');setTimeout(()=>cat.classList.remove('spin'),650);var c=gc(e||event);se('💧',c.x,c.y);ax(15);S.cans+=3;uu();sv();ck()}
+function sp2(){if(S.isSleeping){S.isSleeping=false;S.energy=Math.min(100,S.energy+35);sy('睡飽了！☀️');uu();sv();ub();return}if((S.cooldowns.sp2||0)>0)return;S.cooldowns.sp2=5;S.isSleeping=true;sy(rp('sp2'));uu();sv();ub()}
+
+let la=false,lt=null,lh=0;
+function lg(){if(S.isSleeping)return;if(la){sl();return}if(S.energy<15){sy(rp('le'));return}la=true;lh=0;ld.style.display='block';sy('🔴點紅點！');ml()}
+function ml(){if(!la)return;clearTimeout(lt);const r=cs.getBoundingClientRect();const m=16;const x=m+Math.random()*(r.width-m*2-18);const y=m+Math.random()*(r.height-m*2-18);ld.style.left=x+'px';ld.style.top=y+'px';lt=setTimeout(ml,900+Math.random()*1400)}
+function sl(){la=false;clearTimeout(lt);ld.style.display='none';if(lh>=5){S.happiness=Math.min(100,S.happiness+20);ax(20);S.cans+=5;sy('抓到'+lh+'次！🎉')}else{sy('抓到'+lh+'次')}S.energy=Math.max(0,S.energy-8);uu();sv();ck()}
+ld.addEventListener('click',(e)=>{if(!la)return;e.stopPropagation();lh++;se('💥',e.clientX,e.clientY);ml();S.totalPlayed++});
+cat.addEventListener('click',(e)=>{if(la)return;if(S.isSleeping){sy('zzz...');return}pt(e)});
+cn.addEventListener('click',()=>{var n=prompt('名字：',S.name);if(n&&n.trim()){S.name=n.trim().slice(0,8);cn.textContent=S.name;sy('我叫'+S.name+'！');sv()}});
+function st(name){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));document.querySelector('.tab-btn:nth-child('+(name==='home'?1:name==='shop'?2:3)+')').classList.add('active');$('tab-'+name).classList.add('active');if(name==='shop')rsg();if(name==='ach')ra();if(la)sl()}
+setInterval(()=>{if(sp.classList.contains('show'))return;if(S.isSleeping)return;if(la)return;const r=Math.random();if(r<.12){cat.classList.add('grooming');sy('舔舔毛~🧹');setTimeout(()=>cat.classList.remove('grooming'),2000)}else if(r<.22){if(S.hunger<25)sy(rp('hu'));else if(S.energy<20)sy(rp('le'));else if(S.happiness<25)sy(rp('lh'))}},10000);
+ua2();uu();rsg();ra();ub();
+</script>
+</body>
+</html>
