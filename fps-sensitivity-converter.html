@@ -1071,7 +1071,7 @@
       <form class="panel" id="adsConverter">
         <div class="panel-title">
           <h2>ADS / 開鏡一致設定</h2>
-          <span class="mini">hipfire to scope</span>
+          <span class="mini">MDV / MDH = 0</span>
         </div>
 
         <div class="grid">
@@ -1113,7 +1113,7 @@
           <div class="field">
             <label for="adsScopeFov">開鏡水平 FOV</label>
             <div class="input-wrap has-unit">
-              <input id="adsScopeFov" type="number" min="1" max="179" step="0.01" value="51.47" inputmode="decimal" />
+              <input id="adsScopeFov" type="number" min="1" max="179" step="0.01" value="50.9409" inputmode="decimal" />
               <span class="unit">deg</span>
             </div>
           </div>
@@ -1121,24 +1121,24 @@
 
         <div class="formula-card">
           <strong>公式：</strong>
-          <code>ADS 倍率 = tan(開鏡水平FOV / 2) / tan(腰射水平FOV / 2)</code>
+          <code>MDV / MDH = 0：ADS 倍率 = tan(開鏡水平FOV / 2) / tan(腰射水平FOV / 2)</code>
           <br />
-          <span>如果遊戲的 ADS 欄位是百分比，就把倍率乘以 100。若遊戲要填獨立 ADS 靈敏度，就用腰射靈敏度乘以倍率。</span>
+          <span>全部遊戲都用 0% monitor distance 計算。若遊戲要填獨立 ADS 靈敏度，就用腰射靈敏度乘以倍率。</span>
         </div>
       </form>
 
       <aside class="ads-result" aria-live="polite">
-        <p class="result-label">建議 ADS 倍率</p>
-        <p class="ads-value" id="adsMultiplier">0.386</p>
-        <p class="result-game" id="adsPresetName">鬥陣特攻 2 - 奪命女開鏡</p>
+        <p class="result-label">MDV / MDH = 0 ADS 倍率</p>
+        <p class="ads-value" id="adsMultiplier">0.379</p>
+        <p class="result-game" id="adsPresetName">鬥陣特攻 2 - 安娜 / 奪命女開鏡</p>
         <div class="stats">
           <div class="stat">
             <span>ADS 百分比</span>
-            <strong id="adsPercent">38.56%</strong>
+            <strong id="adsPercent">37.89%</strong>
           </div>
           <div class="stat">
             <span>獨立 ADS 靈敏度</span>
-            <strong id="adsSens">1.542</strong>
+            <strong id="adsSens">1.516</strong>
           </div>
           <div class="stat">
             <span>腰射 FOV</span>
@@ -1146,7 +1146,7 @@
           </div>
           <div class="stat">
             <span>開鏡 FOV</span>
-            <strong id="adsScopeLabel">51.47</strong>
+            <strong id="adsScopeLabel">50.94</strong>
           </div>
         </div>
         <div class="copy-row">
@@ -1201,11 +1201,10 @@
 
     const adsData = {
       "鬥陣特攻 2": [
-        { name: "安娜開鏡", hipFov: 103, scopeFov: 51.47 },
-        { name: "艾西開鏡", hipFov: 103, scopeFov: 65.8 },
-        { name: "奪命女開鏡", hipFov: 103, scopeFov: 51.47 },
-        { name: "艾姆雷 Take Aim 縮放近似", hipFov: 103, scopeFov: 65.8 },
-        { name: "卡西迪威能縮放近似", hipFov: 103, scopeFov: 65.8 },
+        { name: "安娜 / 奪命女開鏡", hipFov: 103, scopeFov: 50.9409 },
+        { name: "艾西 / 銀質子彈", hipFov: 103, scopeFov: 65.8111 },
+        { name: "埃姆雷開鏡", hipFov: 103, scopeFov: 69.3137 },
+        { name: "弗蕾雅開鏡", hipFov: 103, scopeFov: 76.0659 },
         { name: "鬥陣自訂縮放狀態", hipFov: 103, scopeFov: 65.8 }
       ],
       "虹彩六號：圍攻行動": [
@@ -1231,8 +1230,10 @@
         { name: "4x-8x 狙擊鏡 4x", hipFov: 106.26, scopeFov: 26.87 },
         { name: "4x-8x 狙擊鏡 8x", hipFov: 106.26, scopeFov: 13.45 },
         { name: "6x 狙擊鏡", hipFov: 106.26, scopeFov: 17.94 },
-        { name: "6x-10x 數位狙擊威脅 6x", hipFov: 106.26, scopeFov: 17.94 },
-        { name: "6x-10x 數位狙擊威脅 10x", hipFov: 106.26, scopeFov: 10.8 }
+        { name: "4x-10x 數位狙擊威脅 4x", hipFov: 106.26, scopeFov: 26.87 },
+        { name: "4x-10x 數位狙擊威脅 10x", hipFov: 106.26, scopeFov: 10.8 },
+        { name: "6x-10x 可變倍率 6x", hipFov: 106.26, scopeFov: 17.94 },
+        { name: "6x-10x 可變倍率 10x", hipFov: 106.26, scopeFov: 10.8 }
       ],
       "自訂": [
         { name: "自訂開鏡", hipFov: 103, scopeFov: 51.47 }
@@ -1349,7 +1350,7 @@
 
     function formatAds(value, digits = Number(adsDigits.value)) {
       if (!Number.isFinite(value)) return "0";
-      return Number(value.toFixed(digits)).toString();
+      return value.toFixed(digits);
     }
 
     function validNumber(input, fallback) {
@@ -1437,10 +1438,10 @@
       const hipSens = validNumber(adsHipSens, 4);
       const hipFov = Math.min(179, Math.max(1, validNumber(adsHipFov, 103)));
       const scopeFov = Math.min(179, Math.max(1, validNumber(adsScopeFov, 51.47)));
+      const preset = currentAdsPreset();
       const multiplier = Math.tan(degreesToRadians(scopeFov / 2)) / Math.tan(degreesToRadians(hipFov / 2));
       const percent = multiplier * 100;
       const independentAdsSens = hipSens * multiplier;
-      const preset = currentAdsPreset();
 
       $("adsMultiplier").textContent = adsMode.value === "sens"
         ? formatAds(independentAdsSens)
@@ -1615,7 +1616,7 @@
     addFovOptions(fovFromGame, 0);
     addFovOptions(fovToGame, 1);
     addAdsGames(adsGame, 0);
-    populateAdsPresets(2);
+    populateAdsPresets(0);
     syncAdsPreset();
     populateTable();
     setMode("sensitivity");
