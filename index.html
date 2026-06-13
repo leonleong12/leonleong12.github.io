@@ -181,18 +181,6 @@
       animation: jump 900ms cubic-bezier(.2, .9, .28, 1.15), idle 3.8s ease-in-out 920ms infinite;
     }
 
-    .dog-wrap.trick-hop {
-      animation: trickHop 1.15s cubic-bezier(.2, .9, .24, 1.12), idle 3.8s ease-in-out 1.18s infinite;
-    }
-
-    .dog-wrap.trick-wiggle {
-      animation: trickWiggle 1.15s ease-in-out, idle 3.8s ease-in-out 1.18s infinite;
-    }
-
-    .dog-wrap.trick-spin {
-      animation: trickSpin 1.15s cubic-bezier(.2, .86, .28, 1.08), idle 3.8s ease-in-out 1.18s infinite;
-    }
-
     .dog {
       position: relative;
       width: 250px;
@@ -534,105 +522,6 @@
       filter: contrast(1.18) saturate(0);
     }
 
-    .mini-head {
-      position: absolute;
-      left: 13px;
-      top: 0;
-      width: 28px;
-      height: 24px;
-      background: var(--white);
-      border: 2px solid var(--line);
-      border-radius: 50%;
-    }
-
-    .mini-ear {
-      position: absolute;
-      top: 8px;
-      width: 12px;
-      height: 20px;
-      background: var(--white);
-      border: 2px solid var(--line);
-      border-radius: 50%;
-    }
-
-    .mini-ear.left {
-      left: 0;
-      transform: rotate(18deg);
-    }
-
-    .mini-ear.right {
-      right: 0;
-      transform: rotate(-18deg);
-    }
-
-    .mini-eye {
-      position: absolute;
-      top: 10px;
-      width: 4px;
-      height: 5px;
-      background: var(--line);
-      border-radius: 50%;
-    }
-
-    .mini-eye.left {
-      left: 9px;
-    }
-
-    .mini-eye.right {
-      right: 9px;
-    }
-
-    .mini-nose {
-      position: absolute;
-      left: 50%;
-      top: 14px;
-      width: 6px;
-      height: 5px;
-      transform: translateX(-50%);
-      background: var(--line);
-      border-radius: 50%;
-    }
-
-    .mini-mouth {
-      position: absolute;
-      left: 50%;
-      top: 18px;
-      width: 13px;
-      height: 7px;
-      transform: translateX(-50%);
-      border-bottom: 2px solid var(--line);
-      border-radius: 0 0 12px 12px;
-    }
-
-    .mini-body {
-      position: absolute;
-      left: 11px;
-      top: 23px;
-      width: 32px;
-      height: 28px;
-      background: var(--white);
-      border: 2px solid var(--line);
-      border-radius: 14px 14px 16px 16px;
-    }
-
-    .mini-paw {
-      position: absolute;
-      top: 43px;
-      width: 12px;
-      height: 10px;
-      background: var(--white);
-      border: 2px solid var(--line);
-      border-radius: 50%;
-    }
-
-    .mini-paw.left {
-      left: 14px;
-    }
-
-    .mini-paw.right {
-      right: 14px;
-    }
-
     .bottle-text {
       position: absolute;
       left: 8px;
@@ -709,7 +598,7 @@
     }
 
     .tiny-bottle::after {
-      content: "";
+      content: "Great Time";
       position: absolute;
       left: 8px;
       top: 28px;
@@ -720,7 +609,6 @@
       font-size: 4px;
       font-weight: 700;
       text-align: center;
-      content: "Great Time";
       transform: scaleX(0.86);
       transform-origin: center;
       z-index: 3;
@@ -852,18 +740,6 @@
       animation: cornerGlow 950ms ease-in-out 0s 7;
     }
 
-    .reminder-pop h2 {
-      margin: 0 0 8px;
-      font-size: 24px;
-    }
-
-    .reminder-pop p {
-      margin: 0 0 14px;
-      color: var(--muted);
-      font-weight: 800;
-      line-height: 1.45;
-    }
-
     .permission-modal {
       position: fixed;
       inset: 0;
@@ -907,6 +783,18 @@
       margin-top: 16px;
     }
 
+    .reminder-pop h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .reminder-pop p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
     @keyframes idle {
       0%, 100% { transform: translateY(0) rotate(-1deg); }
       50% { transform: translateY(-7px) rotate(1deg); }
@@ -918,33 +806,6 @@
       52% { transform: translateY(4px) scale(0.96, 1.06); }
       72% { transform: translateY(-14px) scale(1.01); }
       100% { transform: translateY(0) scale(1); }
-    }
-
-    @keyframes trickHop {
-      0% { transform: translateY(0) scale(1); }
-      18% { transform: translateY(8px) scale(1.12, 0.82); }
-      42% { transform: translateY(-76px) scale(0.88, 1.14); }
-      62% { transform: translateY(4px) scale(1.08, 0.9); }
-      78% { transform: translateY(-24px) scale(0.96, 1.05); }
-      100% { transform: translateY(0) scale(1); }
-    }
-
-    @keyframes trickWiggle {
-      0%, 100% { transform: translateX(0) rotate(0deg); }
-      12% { transform: translateX(-28px) rotate(-12deg); }
-      24% { transform: translateX(28px) rotate(12deg); }
-      36% { transform: translateX(-24px) rotate(-10deg); }
-      48% { transform: translateX(24px) rotate(10deg); }
-      62% { transform: translateX(-14px) rotate(-6deg); }
-      78% { transform: translateX(10px) rotate(4deg); }
-    }
-
-    @keyframes trickSpin {
-      0% { transform: rotate(0deg) scale(1); }
-      18% { transform: rotate(-18deg) scale(0.94); }
-      52% { transform: rotate(372deg) scale(1.06); }
-      72% { transform: rotate(344deg) scale(1.02); }
-      100% { transform: rotate(360deg) scale(1); }
     }
 
     @keyframes twinkle {
@@ -1122,7 +983,7 @@
     <div class="permission-card">
       <h2 id="permissionTitle">開啟喝水通知</h2>
       <p id="permissionIntro">下一步會呼叫瀏覽器自己的通知權限視窗，請選「允許」。</p>
-      <p id="permissionHelp">如果沒有跳出權限視窗，請檢查瀏覽器網址列旁的網站設定，確認通知沒有被封鎖。</p>
+      <p id="permissionHelp">如果沒有看到瀏覽器權限視窗，請檢查網址列旁的網站設定，確認通知沒有被封鎖。</p>
       <div class="permission-actions">
         <button class="primary" id="allowNotificationBtn" type="button">允許瀏覽器通知</button>
         <button id="closePermissionBtn" type="button">先不要</button>
@@ -1236,7 +1097,7 @@
 
       const label = {
         granted: "通知已開",
-        denied: "通知被關",
+        denied: "通知被封鎖",
         default: "通知未開"
       };
       permissionState.textContent = label[Notification.permission] || "通知未開";
