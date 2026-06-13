@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link id="faviconLink" rel="icon" type="image/png" href="water-reminder-icon.png">
+  <link id="faviconLink" rel="icon" type="image/png" href="assets/water-reminder-icon.png">
   <title>喝水提醒器</title>
   <style>
     :root {
@@ -21,6 +21,32 @@
 
     * {
       box-sizing: border-box;
+    }
+
+    .home-link {
+      position: fixed;
+      left: 18px;
+      top: 18px;
+      z-index: 40;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 2px solid rgba(23, 49, 49, 0.14);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255, 254, 247, 0.86);
+      box-shadow: 0 12px 28px rgba(35, 91, 86, 0.13);
+      backdrop-filter: blur(12px);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .home-link:hover {
+      border-color: rgba(94, 185, 175, 0.46);
+      color: var(--mint-deep);
     }
 
     body {
@@ -631,7 +657,7 @@
       top: 38px;
       width: 15px;
       height: 15px;
-      background: url("great-time-dog-small.png") center / contain no-repeat;
+      background: url("assets/great-time-dog-small.png") center / contain no-repeat;
       filter: contrast(1.25) saturate(0);
       mix-blend-mode: multiply;
       z-index: 3;
@@ -711,7 +737,7 @@
       content: "";
       width: 24px;
       height: 24px;
-      background: url("water-reminder-icon.png") center / cover no-repeat;
+      background: url("assets/water-reminder-icon.png") center / cover no-repeat;
       border-radius: 7px;
       filter: contrast(1.1);
     }
@@ -867,6 +893,7 @@
   </style>
 </head>
 <body>
+  <a class="home-link" href="index.html">返回首頁</a>
   <div class="tip-bar" aria-live="polite">
     <span class="tip-text" id="tipText">多喝水可以幫助代謝，減脂期也更容易控制食慾。</span>
   </div>
@@ -935,7 +962,7 @@
             <div class="bottle-body">
               <div class="bottle-text">𝓖𝓻𝓮𝓪𝓽 𝓣𝓲𝓶𝓮</div>
               <div class="label-dog">
-                <img class="bottle-dog-img" src="great-time-dog-small.png" alt="">
+                <img class="bottle-dog-img" src="assets/great-time-dog-small.png" alt="">
               </div>
             </div>
           </div>
@@ -1081,8 +1108,8 @@
     }
 
     function flashFavicon() {
-      const normalHref = "water-reminder-icon.png";
-      const alertHref = "water-reminder-alert-icon.png";
+      const normalHref = "assets/water-reminder-icon.png";
+      const alertHref = "assets/water-reminder-alert-icon.png";
       let count = 0;
       window.clearInterval(faviconTimer);
       faviconTimer = window.setInterval(() => {
@@ -1097,7 +1124,7 @@
 
     function stopFaviconFlash() {
       window.clearInterval(faviconTimer);
-      setFavicon("water-reminder-icon.png");
+      setFavicon("assets/water-reminder-icon.png");
     }
 
     function startReminder() {
@@ -1307,11 +1334,11 @@
       window.clearInterval(persistentTitleTimer);
       let alertBlinkOn = true;
       document.title = "喝水啦！";
-      setFavicon("water-reminder-alert-icon.png");
+      setFavicon("assets/water-reminder-alert-icon.png");
       persistentTitleTimer = window.setInterval(() => {
         alertBlinkOn = !alertBlinkOn;
         document.title = alertBlinkOn ? "喝水啦！" : originalTitle;
-        setFavicon(alertBlinkOn ? "water-reminder-alert-icon.png" : "water-reminder-icon.png");
+        setFavicon(alertBlinkOn ? "assets/water-reminder-alert-icon.png" : "assets/water-reminder-icon.png");
       }, 700);
     }
 

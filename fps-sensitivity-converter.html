@@ -244,7 +244,9 @@
     .trainer-stage.reaction-done {
       cursor: pointer;
       border-color: rgba(77, 179, 255, 0.45);
-      background: #2f86d8;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(77, 179, 255, 0.16), transparent 24rem),
+        linear-gradient(135deg, #0b111b 0%, #132033 100%);
     }
 
     .trainer-head {
@@ -286,6 +288,31 @@
       font-size: clamp(22px, 4vw, 42px);
       font-weight: 900;
       line-height: 1.15;
+    }
+
+    .home-link {
+      position: fixed;
+      left: 18px;
+      top: 18px;
+      z-index: 80;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(18, 23, 34, 0.76);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(12px);
+      text-decoration: none;
+      font-weight: 850;
+    }
+
+    .home-link:hover {
+      border-color: rgba(50, 213, 164, 0.42);
+      color: var(--accent);
     }
 
     .trainer-stats {
@@ -773,6 +800,7 @@
   </style>
 </head>
 <body>
+  <a class="home-link" href="index.html">返回首頁</a>
   <main class="shell">
     <header class="topbar">
       <div class="brand">
@@ -1035,7 +1063,6 @@
         </div>
         <div class="copy-row">
           <button class="action primary" type="button" id="copyFovSens">複製 FOV 數值</button>
-          <button class="action" type="button" id="resetFovCsVal">CS2 0.9 -> Valorant</button>
         </div>
       </aside>
     </section>
@@ -1124,7 +1151,6 @@
         </div>
         <div class="copy-row">
           <button class="action primary" type="button" id="copyAdsValue">複製 ADS 值</button>
-          <button class="action" type="button" id="resetAdsWidow">黑百合範例</button>
         </div>
       </aside>
     </section>
@@ -1749,16 +1775,6 @@
       }
     });
 
-    $("resetFovCsVal").addEventListener("click", () => {
-      fovFromGame.value = "0";
-      fovToGame.value = "1";
-      fovFromSens.value = "0.9";
-      syncFovPreset(fovFromGame, fovFromYaw, fovFrom);
-      syncFovPreset(fovToGame, fovToYaw, fovTo);
-      calculateFovMatch();
-      showToast("CS2 0.9 -> Valorant");
-    });
-
     $("copyAdsValue").addEventListener("click", async () => {
       const value = adsMode.value === "sens"
         ? $("adsSens").textContent
@@ -1771,15 +1787,6 @@
       }
     });
 
-    $("resetAdsWidow").addEventListener("click", () => {
-      adsGame.value = "0";
-      populateAdsPresets(2);
-      adsHipSens.value = "4";
-      adsMode.value = "multiplier";
-      syncAdsPreset();
-      calculateAdsMatch();
-      showToast("已套用奪命女開鏡範例");
-    });
   </script>
 </body>
 </html>
