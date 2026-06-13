@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f6f73'/%3E%3Cpath d='M18 15h28v34H18z' fill='%23fffaf0'/%3E%3Cpath d='M24 24h16M24 32h16M24 40h10' stroke='%23232323' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <title>字數統計工具</title>
+  <style>
+    :root {
+      --bg: #f5f7f4;
+      --panel: #ffffff;
+      --ink: #1f2933;
+      --muted: #687385;
+      --line: #dfe7df;
+      --accent: #2f6f73;
+      --accent-2: #d96c4a;
+      --soft: #e7f2ef;
+      --shadow: 0 22px 70px rgba(35, 47, 39, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(47, 111, 115, 0.055) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(47, 111, 115, 0.055) 1px, transparent 1px),
+        var(--bg);
+      background-size: 32px 32px;
+      font-family: "Microsoft JhengHei", "PingFang TC", "Segoe UI", sans-serif;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    .home-link {
+      position: fixed;
+      left: 18px;
+      top: 18px;
+      z-index: 10;
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid rgba(47, 111, 115, 0.22);
+      border-radius: 999px;
+      color: var(--accent);
+      background: rgba(255, 255, 255, 0.76);
+      backdrop-filter: blur(12px);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 850;
+      box-shadow: 0 12px 34px rgba(31, 41, 51, 0.08);
+    }
+
+    .page {
+      width: min(1160px, calc(100% - 34px));
+      margin: 0 auto;
+      padding: 82px 0 44px;
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 22px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+
+    .kicker {
+      width: fit-content;
+      margin-bottom: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: var(--accent);
+      background: var(--soft);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 6vw, 64px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 650px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 650;
+    }
+
+    .tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--panel);
+      cursor: pointer;
+      font-weight: 850;
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(47, 111, 115, 0.45);
+      background: #fbfffd;
+    }
+
+    .btn.primary {
+      border-color: var(--accent);
+      color: #fff;
+      background: var(--accent);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .editor,
+    .side {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: var(--shadow);
+    }
+
+    .editor {
+      overflow: hidden;
+    }
+
+    .editor-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .editor-head strong,
+    .side h2 {
+      font-size: 16px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 520px;
+      padding: 18px;
+      resize: vertical;
+      border: 0;
+      outline: none;
+      color: var(--ink);
+      background: transparent;
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    textarea::placeholder {
+      color: #9aa5b1;
+    }
+
+    .side {
+      padding: 16px;
+    }
+
+    .side h2 {
+      margin: 0 0 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fbfdfb;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 6px;
+      color: var(--ink);
+      font-size: clamp(22px, 4vw, 34px);
+      line-height: 1;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .summary {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 10px;
+      color: var(--muted);
+      background: var(--soft);
+      line-height: 1.65;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: #fff;
+      background: var(--accent);
+      box-shadow: 0 16px 40px rgba(31, 41, 51, 0.18);
+      font-weight: 850;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        display: block;
+      }
+
+      .tools {
+        justify-content: flex-start;
+        margin-top: 18px;
+      }
+
+      textarea {
+        min-height: 390px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="home-link" href="index.html">返回首頁</a>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <div class="kicker">Office text helper</div>
+        <h1>字數統計工具</h1>
+        <p class="subtitle">貼上文案、報告或公告內容，即時統計中文字、英文單詞、字符、段落和預估閱讀時間。</p>
+      </div>
+      <div class="tools">
+        <button class="btn primary" type="button" id="copyStats">複製統計</button>
+        <button class="btn" type="button" id="copyText">複製文字</button>
+        <button class="btn" type="button" id="clearText">清空</button>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <div class="editor">
+        <div class="editor-head">
+          <strong>輸入文字</strong>
+          <span class="hint" id="liveHint">等待輸入</span>
+        </div>
+        <textarea id="textInput" placeholder="把需要統計的文字貼到這裡。例如：工作報告、公告、作文、履歷、合同段落、社群文案..."></textarea>
+      </div>
+
+      <aside class="side" aria-live="polite">
+        <h2>統計結果</h2>
+        <div class="stats">
+          <div class="stat">
+            <span>中文字數</span>
+            <strong id="chineseCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>英文單詞</span>
+            <strong id="wordCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>總字符</span>
+            <strong id="charCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>不含空格</span>
+            <strong id="noSpaceCount">0</strong>
+          </div>
+          <div class="wide">
+            <div class="stat">
+              <span>段落</span>
+              <strong id="paragraphCount">0</strong>
+            </div>
+            <div class="stat">
+              <span>行數</span>
+              <strong id="lineCount">0</strong>
+            </div>
+          </div>
+          <div class="wide">
+            <div class="stat">
+              <span>句子</span>
+              <strong id="sentenceCount">0</strong>
+            </div>
+            <div class="stat">
+              <span>數字組</span>
+              <strong id="numberCount">0</strong>
+            </div>
+          </div>
+        </div>
+        <p class="summary" id="summary">貼上文字後，這裡會顯示閱讀時間和簡短摘要。</p>
+      </aside>
+    </section>
+  </main>
+
+  <div class="toast" id="toast">已複製</div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const input = $("textInput");
+    const toast = $("toast");
+    let toastTimer = null;
+
+    function countMatches(text, regex) {
+      const matches = text.match(regex);
+      return matches ? matches.length : 0;
+    }
+
+    function calculate(text) {
+      const trimmed = text.trim();
+      const chinese = countMatches(text, /[\u3400-\u9fff]/g);
+      const englishWords = countMatches(text, /[A-Za-z]+(?:[-'][A-Za-z]+)*/g);
+      const chars = text.length;
+      const noSpaces = text.replace(/\s/g, "").length;
+      const lines = trimmed ? text.replace(/\n$/, "").split(/\n/).length : 0;
+      const paragraphs = trimmed ? trimmed.split(/\n\s*\n/).filter(Boolean).length : 0;
+      const sentences = countMatches(trimmed, /[^。！？!?；;.\n]+[。！？!?；;.]+/g) || (trimmed ? 1 : 0);
+      const numbers = countMatches(text, /\d+(?:[.,]\d+)*/g);
+      const readingUnits = chinese + englishWords;
+      const minutes = readingUnits ? Math.max(1, Math.ceil(readingUnits / 200)) : 0;
+
+      return { chinese, englishWords, chars, noSpaces, lines, paragraphs, sentences, numbers, readingUnits, minutes };
+    }
+
+    function render() {
+      const text = input.value;
+      const s = calculate(text);
+      $("chineseCount").textContent = s.chinese;
+      $("wordCount").textContent = s.englishWords;
+      $("charCount").textContent = s.chars;
+      $("noSpaceCount").textContent = s.noSpaces;
+      $("paragraphCount").textContent = s.paragraphs;
+      $("lineCount").textContent = s.lines;
+      $("sentenceCount").textContent = s.sentences;
+      $("numberCount").textContent = s.numbers;
+      $("liveHint").textContent = s.chars ? `已輸入 ${s.chars} 個字符` : "等待輸入";
+      $("summary").textContent = s.chars
+        ? `約 ${s.minutes} 分鐘讀完。中文 ${s.chinese} 字，英文 ${s.englishWords} 個單詞，合計閱讀單位 ${s.readingUnits}。`
+        : "貼上文字後，這裡會顯示閱讀時間和簡短摘要。";
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1500);
+    }
+
+    async function copy(value, message) {
+      try {
+        await navigator.clipboard.writeText(value);
+        showToast(message);
+      } catch (error) {
+        input.select();
+        document.execCommand("copy");
+        showToast(message);
+      }
+    }
+
+    function statsText() {
+      const s = calculate(input.value);
+      return [
+        `中文字數：${s.chinese}`,
+        `英文單詞：${s.englishWords}`,
+        `總字符：${s.chars}`,
+        `不含空格：${s.noSpaces}`,
+        `段落：${s.paragraphs}`,
+        `行數：${s.lines}`,
+        `句子：${s.sentences}`,
+        `數字組：${s.numbers}`,
+        `預估閱讀時間：約 ${s.minutes} 分鐘`
+      ].join("\n");
+    }
+
+    input.addEventListener("input", render);
+    $("copyStats").addEventListener("click", () => copy(statsText(), "已複製統計"));
+    $("copyText").addEventListener("click", () => copy(input.value, "已複製文字"));
+    $("clearText").addEventListener("click", () => {
+      input.value = "";
+      render();
+      input.focus();
+      showToast("已清空");
+    });
+
+    render();
+  </script>
+</body>
+</html>
