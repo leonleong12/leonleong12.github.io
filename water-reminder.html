@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link id="faviconLink" rel="icon" type="image/png" href="water-reminder-icon.png">
+  <title>喝水提醒器</title>
+  <style>
+    :root {
+      --mint: #aee6df;
+      --mint-deep: #5eb9af;
+      --cream: #fff7d8;
+      --bottle: #f4e89b;
+      --ink: #24403f;
+      --muted: #647a78;
+      --line: #173131;
+      --white: #fffef7;
+      --panel: rgba(255, 255, 255, 0.78);
+      --shadow: 0 22px 60px rgba(35, 91, 86, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 16% 16%, rgba(255, 255, 255, 0.88) 0 9%, transparent 10%),
+        linear-gradient(145deg, #c6f2eb 0%, #9adbd4 48%, #f8eec1 100%);
+      display: grid;
+      place-items: center;
+      padding: 82px 28px 28px;
+    }
+
+    .tip-bar {
+      position: fixed;
+      left: 50%;
+      top: 18px;
+      z-index: 20;
+      width: min(720px, calc(100% - 28px));
+      min-height: 48px;
+      display: grid;
+      place-items: center;
+      padding: 10px 18px;
+      overflow: hidden;
+      border: 2px solid rgba(23, 49, 49, 0.18);
+      border-radius: 999px;
+      background: rgba(255, 254, 247, 0.9);
+      color: var(--ink);
+      font-weight: 900;
+      text-align: center;
+      box-shadow: 0 14px 34px rgba(35, 91, 86, 0.15);
+      backdrop-filter: blur(16px);
+      transform: translateX(-50%);
+    }
+
+    .tip-text {
+      display: block;
+      line-height: 1.35;
+      animation: tipSlide 4.8s ease-in-out infinite;
+    }
+
+    .app {
+      width: min(1080px, 100%);
+      display: grid;
+      grid-template-columns: minmax(300px, 1.05fr) minmax(320px, 0.95fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .stage,
+    .controls {
+      background: var(--panel);
+      border: 2px solid rgba(255, 255, 255, 0.74);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .stage {
+      min-height: 640px;
+      border-radius: 28px;
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 30px;
+    }
+
+    .stage::before {
+      content: "";
+      position: absolute;
+      inset: auto -8% -18% -8%;
+      height: 230px;
+      background: #fff3bf;
+      border-radius: 50% 50% 0 0;
+      opacity: 0.84;
+    }
+
+    .topline {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .hero {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      padding: 16px 0 0;
+    }
+
+    .bubble {
+      position: absolute;
+      top: 42px;
+      right: 18px;
+      min-width: 128px;
+      max-width: 190px;
+      padding: 14px 16px;
+      border: 3px solid var(--line);
+      border-radius: 24px 24px 24px 8px;
+      background: var(--white);
+      font-size: 18px;
+      font-weight: 900;
+      text-align: center;
+      transform: rotate(4deg);
+      box-shadow: 6px 6px 0 rgba(23, 49, 49, 0.1);
+    }
+
+    .dog-wrap {
+      width: min(360px, 82vw);
+      aspect-ratio: 1 / 0.9;
+      position: relative;
+      display: grid;
+      place-items: end center;
+      transform-origin: 50% 85%;
+      animation: idle 3.8s ease-in-out infinite;
+      cursor: pointer;
+    }
+
+    .dog-wrap.jump {
+      animation: jump 900ms cubic-bezier(.2, .9, .28, 1.15), idle 3.8s ease-in-out 920ms infinite;
+    }
+
+    .dog-wrap.alert-shake {
+      animation: alertDogShake 720ms ease-in-out infinite;
+    }
+
+    .dog {
+      position: relative;
+      width: 250px;
+      height: 240px;
+    }
+
+    .ear {
+      position: absolute;
+      top: 34px;
+      width: 68px;
+      height: 106px;
+      background: var(--white);
+      border: 4px solid var(--line);
+      border-radius: 45% 45% 50% 50%;
+      z-index: 1;
+    }
+
+    .ear.left {
+      left: 22px;
+      transform: rotate(16deg);
+    }
+
+    .ear.right {
+      right: 20px;
+      transform: rotate(-18deg);
+    }
+
+    .head {
+      position: absolute;
+      left: 50%;
+      top: 26px;
+      width: 168px;
+      height: 148px;
+      transform: translateX(-50%);
+      background: var(--white);
+      border: 4px solid var(--line);
+      border-radius: 48% 48% 44% 44%;
+      z-index: 2;
+    }
+
+    .eye {
+      position: absolute;
+      top: 54px;
+      width: 18px;
+      height: 22px;
+      background: var(--line);
+      border-radius: 50%;
+    }
+
+    .eye.left {
+      left: 48px;
+    }
+
+    .eye.right {
+      right: 48px;
+    }
+
+    .cheek {
+      position: absolute;
+      top: 82px;
+      width: 24px;
+      height: 14px;
+      background: #ffc5c4;
+      border-radius: 999px;
+      opacity: 0.8;
+    }
+
+    .cheek.left {
+      left: 30px;
+    }
+
+    .cheek.right {
+      right: 30px;
+    }
+
+    .nose {
+      position: absolute;
+      left: 50%;
+      top: 76px;
+      width: 26px;
+      height: 20px;
+      transform: translateX(-50%);
+      background: var(--line);
+      border-radius: 48% 48% 58% 58%;
+    }
+
+    .mouth {
+      position: absolute;
+      left: 50%;
+      top: 98px;
+      width: 62px;
+      height: 28px;
+      transform: translateX(-50%);
+      border-bottom: 4px solid var(--line);
+      border-radius: 0 0 50px 50px;
+    }
+
+    .body {
+      position: absolute;
+      left: 50%;
+      top: 142px;
+      width: 158px;
+      height: 82px;
+      transform: translateX(-50%);
+      background: var(--white);
+      border: 4px solid var(--line);
+      border-radius: 46px 46px 54px 54px;
+      z-index: 1;
+    }
+
+    .paw {
+      position: absolute;
+      top: 196px;
+      width: 44px;
+      height: 34px;
+      background: var(--white);
+      border: 4px solid var(--line);
+      border-radius: 50% 50% 42% 42%;
+      z-index: 3;
+    }
+
+    .paw.left {
+      left: 78px;
+    }
+
+    .paw.right {
+      right: 78px;
+    }
+
+    .spark {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: #ffd84f;
+      clip-path: polygon(50% 0, 62% 35%, 100% 50%, 62% 65%, 50% 100%, 38% 65%, 0 50%, 38% 35%);
+      animation: twinkle 1.6s ease-in-out infinite;
+    }
+
+    .spark.one {
+      left: 38px;
+      top: 58px;
+    }
+
+    .spark.two {
+      right: 38px;
+      bottom: 80px;
+      animation-delay: 0.5s;
+    }
+
+    .timer-card {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 16px;
+      padding: 18px;
+      border: 3px solid var(--line);
+      border-radius: 22px;
+      background: var(--white);
+      box-shadow: 7px 7px 0 rgba(23, 49, 49, 0.1);
+    }
+
+    .timer-label {
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .timer {
+      font-size: clamp(44px, 8vw, 74px);
+      font-weight: 950;
+      line-height: 0.95;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .next-time {
+      color: var(--muted);
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .controls {
+      border-radius: 22px;
+      padding: 22px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .panel {
+      border: 2px solid rgba(36, 64, 63, 0.13);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .reminder-state {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.64);
+      box-shadow: inset 0 0 0 2px rgba(36, 64, 63, 0.1);
+      font-weight: 900;
+    }
+
+    .state-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #c9d5d3;
+      box-shadow: 0 0 0 4px rgba(201, 213, 211, 0.25);
+    }
+
+    .reminder-state.running .state-dot {
+      background: #2fbbb0;
+      box-shadow: 0 0 0 4px rgba(47, 187, 176, 0.18);
+    }
+
+    button {
+      border: 0;
+      min-height: 48px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--ink);
+      background: #ffffff;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 2px rgba(36, 64, 63, 0.14), 0 7px 0 rgba(36, 64, 63, 0.09);
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: inset 0 0 0 2px rgba(36, 64, 63, 0.18), 0 9px 0 rgba(36, 64, 63, 0.1);
+    }
+
+    button:active {
+      transform: translateY(4px);
+      box-shadow: inset 0 0 0 2px rgba(36, 64, 63, 0.18), 0 3px 0 rgba(36, 64, 63, 0.1);
+    }
+
+    .primary {
+      background: #2fbbb0;
+      color: white;
+      box-shadow: inset 0 0 0 2px rgba(23, 49, 49, 0.12), 0 7px 0 #21867f;
+    }
+
+    .soft {
+      background: #fff1a6;
+    }
+
+    .danger {
+      background: #ffe4e4;
+    }
+
+    .water-area {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .bottle {
+      width: 100px;
+      height: 192px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      transform-origin: 50% 90%;
+    }
+
+    .bottle.alert-shake {
+      animation: alertBottleShake 640ms ease-in-out infinite;
+    }
+
+    .bottle-cap {
+      position: absolute;
+      top: 0;
+      width: 68px;
+      height: 42px;
+      background: linear-gradient(to bottom, var(--bottle) 0 48%, #5c837d 49% 100%);
+      border: 3px solid var(--line);
+      border-radius: 22px 22px 10px 10px;
+      z-index: 2;
+    }
+
+    .bottle-cap::after {
+      content: "";
+      position: absolute;
+      right: -18px;
+      top: 6px;
+      width: 22px;
+      height: 30px;
+      background: linear-gradient(to bottom, var(--bottle) 0 34%, #5c837d 35% 100%);
+      border: 3px solid var(--line);
+      border-left: 0;
+      border-radius: 0 12px 12px 0;
+    }
+
+    .bottle-body {
+      position: absolute;
+      top: 32px;
+      width: 84px;
+      height: 150px;
+      background: linear-gradient(90deg, #fff4b3, var(--bottle) 62%, #eadb80);
+      border: 3px solid var(--line);
+      border-radius: 28px 28px 22px 22px;
+      overflow: hidden;
+      box-shadow: inset -11px 0 rgba(112, 112, 50, 0.08);
+    }
+
+    .label-dog {
+      position: absolute;
+      left: 13px;
+      top: 76px;
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+    }
+
+    .bottle-dog-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      filter: contrast(1.18) saturate(0);
+    }
+
+    .bottle-text {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 42px;
+      color: #5f846f;
+      font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+      font-size: 10px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1;
+      white-space: nowrap;
+      transform: scaleX(0.88);
+      transform-origin: center;
+    }
+
+    .stat-number {
+      font-size: 54px;
+      line-height: 0.9;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .progress {
+      height: 16px;
+      border-radius: 999px;
+      background: rgba(36, 64, 63, 0.12);
+      overflow: hidden;
+      margin-top: 14px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2fbbb0, #ffe15d);
+      transition: width 280ms ease;
+    }
+
+    .log {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 42px);
+      gap: 18px 12px;
+      margin-top: 16px;
+      padding-top: 14px;
+      align-items: end;
+    }
+
+    .tiny-bottle {
+      width: 40px;
+      height: 66px;
+      position: relative;
+      display: block;
+    }
+
+    .tiny-bottle::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 15px;
+      width: 30px;
+      height: 47px;
+      border-radius: 12px 12px 10px 10px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.42) 0 16%, transparent 17%),
+        linear-gradient(90deg, #fff4b3 0%, var(--bottle) 66%, #eadb80 100%);
+      border: 2px solid rgba(23, 49, 49, 0.58);
+      box-shadow: inset -5px 0 rgba(112, 112, 50, 0.08);
+    }
+
+    .tiny-bottle::after {
+      content: "Great Time";
+      position: absolute;
+      left: 8px;
+      top: 28px;
+      width: 22px;
+      height: 7px;
+      color: #5f846f;
+      font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+      font-size: 4px;
+      font-weight: 700;
+      text-align: center;
+      transform: scaleX(0.86);
+      transform-origin: center;
+      z-index: 3;
+    }
+
+    .tiny-cap {
+      position: absolute;
+      left: 7px;
+      top: 0;
+      width: 25px;
+      height: 19px;
+      border-radius: 10px 10px 4px 4px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.32), transparent 42%),
+        linear-gradient(to bottom, var(--bottle) 0 48%, #5c837d 49% 100%);
+      border: 2px solid rgba(23, 49, 49, 0.58);
+      z-index: 4;
+    }
+
+    .tiny-side {
+      position: absolute;
+      right: 1px;
+      top: 7px;
+      width: 9px;
+      height: 15px;
+      background: linear-gradient(to bottom, var(--bottle) 0 34%, #5c837d 35% 100%);
+      border: 2px solid rgba(23, 49, 49, 0.58);
+      border-left: 0;
+      border-radius: 0 7px 7px 0;
+      z-index: 3;
+    }
+
+    .tiny-dog {
+      position: absolute;
+      left: 12px;
+      top: 38px;
+      width: 15px;
+      height: 15px;
+      background: url("great-time-dog-small.png") center / contain no-repeat;
+      filter: contrast(1.25) saturate(0);
+      mix-blend-mode: multiply;
+      z-index: 3;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translate(-50%, 120px);
+      opacity: 0;
+      padding: 14px 18px;
+      background: var(--ink);
+      color: white;
+      border-radius: 999px;
+      font-weight: 900;
+      box-shadow: 0 16px 40px rgba(23, 49, 49, 0.24);
+      transition: transform 220ms ease, opacity 220ms ease;
+      z-index: 10;
+    }
+
+    .toast.show {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    .reminder-pop {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 25;
+      width: min(360px, calc(100% - 32px));
+      padding: 18px;
+      border: 3px solid var(--line);
+      border-radius: 22px;
+      background: var(--white);
+      box-shadow: 8px 8px 0 rgba(23, 49, 49, 0.16), 0 20px 54px rgba(23, 49, 49, 0.22);
+      transform: translateY(130%);
+      opacity: 0;
+      transition: transform 240ms ease, opacity 240ms ease;
+    }
+
+    .reminder-pop.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .corner-alert {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      z-index: 26;
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border: 3px solid #7b1717;
+      border-radius: 16px;
+      background: #ffb3ad;
+      box-shadow: 0 0 0 rgba(255, 54, 54, 0), 0 10px 24px rgba(80, 16, 16, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px) scale(0.88);
+    }
+
+    .corner-alert::before {
+      content: "";
+      position: absolute;
+      inset: -10px;
+      border-radius: 22px;
+      background: radial-gradient(circle, rgba(255, 45, 45, 0.45), transparent 68%);
+      opacity: 0;
+      z-index: -1;
+    }
+
+    .corner-alert::after {
+      content: "";
+      width: 24px;
+      height: 24px;
+      background: url("water-reminder-icon.png") center / cover no-repeat;
+      border-radius: 7px;
+      filter: contrast(1.1);
+    }
+
+    .corner-alert.show {
+      animation: cornerPulse 950ms ease-in-out infinite;
+    }
+
+    .corner-alert.show::before {
+      animation: cornerGlow 950ms ease-in-out infinite;
+    }
+
+    .reminder-pop h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .reminder-pop p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    .drink-confirm {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      z-index: 27;
+      min-width: 220px;
+      min-height: 88px;
+      padding: 20px 36px;
+      border: 4px solid var(--line);
+      border-radius: 28px;
+      background: #ff4d4d;
+      color: #fff;
+      font-size: 32px;
+      font-weight: 950;
+      box-shadow: 0 0 34px rgba(255, 34, 34, 0.8), 0 16px 0 rgba(132, 25, 25, 0.28);
+      transform: translate(-50%, -50%) scale(0.82);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 220ms ease, opacity 220ms ease;
+      animation: none;
+    }
+
+    .drink-confirm.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+      animation: confirmPulse 900ms ease-in-out infinite;
+    }
+
+    @keyframes idle {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-7px) rotate(1deg); }
+    }
+
+    @keyframes jump {
+      0% { transform: translateY(0) scale(1); }
+      28% { transform: translateY(-54px) scale(1.03, 0.96); }
+      52% { transform: translateY(4px) scale(0.96, 1.06); }
+      72% { transform: translateY(-14px) scale(1.01); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    @keyframes twinkle {
+      0%, 100% { transform: scale(0.8) rotate(0deg); opacity: 0.55; }
+      50% { transform: scale(1.18) rotate(20deg); opacity: 1; }
+    }
+
+    @keyframes tipSlide {
+      0% { transform: translateY(130%); opacity: 0; }
+      14%, 78% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-130%); opacity: 0; }
+    }
+
+    @keyframes cornerPulse {
+      0%, 100% {
+        opacity: 0.35;
+        transform: translateY(0) scale(0.92);
+        box-shadow: 0 0 0 rgba(255, 54, 54, 0), 0 10px 24px rgba(80, 16, 16, 0.18);
+      }
+      45% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.08);
+        box-shadow: 0 0 34px rgba(255, 34, 34, 0.95), 0 0 74px rgba(255, 34, 34, 0.55), 0 10px 24px rgba(80, 16, 16, 0.18);
+      }
+    }
+
+    @keyframes cornerGlow {
+      0%, 100% { opacity: 0.1; transform: scale(0.88); }
+      45% { opacity: 1; transform: scale(1.32); }
+    }
+
+    @keyframes confirmPulse {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(255, 34, 34, 0.75), 0 16px 0 rgba(132, 25, 25, 0.28);
+      }
+      50% {
+        box-shadow: 0 0 54px rgba(255, 34, 34, 1), 0 0 96px rgba(255, 34, 34, 0.42), 0 12px 0 rgba(132, 25, 25, 0.28);
+      }
+    }
+
+    @keyframes alertDogShake {
+      0%, 100% { transform: translateX(0) rotate(0deg) scale(1); }
+      18% { transform: translateX(-10px) rotate(-4deg) scale(1.02); }
+      36% { transform: translateX(10px) rotate(4deg) scale(1.02); }
+      54% { transform: translateX(-7px) rotate(-3deg) scale(1.01); }
+      72% { transform: translateX(7px) rotate(3deg) scale(1.01); }
+    }
+
+    @keyframes alertBottleShake {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      20% { transform: translateX(-4px) rotate(-3deg); }
+      40% { transform: translateX(4px) rotate(3deg); }
+      60% { transform: translateX(-3px) rotate(-2deg); }
+      80% { transform: translateX(3px) rotate(2deg); }
+    }
+
+    @media (max-width: 820px) {
+      body {
+        padding: 82px 14px 14px;
+      }
+
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .stage {
+        min-height: 590px;
+        padding: 22px;
+      }
+
+      .topline {
+        display: grid;
+      }
+
+      .timer-card {
+        grid-template-columns: 1fr;
+      }
+
+      .button-row {
+        grid-template-columns: 1fr;
+      }
+
+      .reminder-state {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <div class="tip-bar" aria-live="polite">
+    <span class="tip-text" id="tipText">多喝水可以幫助代謝，減脂期也更容易控制食慾。</span>
+  </div>
+
+  <main class="app">
+    <section class="stage" aria-label="喝水提醒舞台">
+      <div class="topline">
+        <div>
+          <h1>喝水啦</h1>
+          <p class="muted">每 30 分鐘提醒一次，小狗會輕輕跳一下。</p>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="bubble" id="speech">等一下叫你！</div>
+        <div class="dog-wrap" id="dogWrap" aria-hidden="true">
+          <span class="spark one"></span>
+          <span class="spark two"></span>
+          <div class="dog">
+            <div class="ear left"></div>
+            <div class="ear right"></div>
+            <div class="head">
+              <div class="eye left"></div>
+              <div class="eye right"></div>
+              <div class="cheek left"></div>
+              <div class="cheek right"></div>
+              <div class="nose"></div>
+              <div class="mouth"></div>
+            </div>
+            <div class="body"></div>
+            <div class="paw left"></div>
+            <div class="paw right"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="timer-card">
+        <div>
+          <div class="timer-label">下一次提醒</div>
+          <div class="timer" id="countdown">30:00</div>
+          <div class="next-time" id="nextTime">預計 --:--</div>
+        </div>
+        <button class="soft" id="advanceBtn" type="button">提前 1 分鐘</button>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="功能區">
+      <div class="panel">
+        <h2>提醒</h2>
+        <div class="reminder-state" id="reminderState">
+          <span id="reminderStateText">提醒未啟動</span>
+          <span class="state-dot" aria-hidden="true"></span>
+        </div>
+        <div class="button-row">
+          <button class="primary" id="startBtn" type="button">開始提醒</button>
+          <button id="testBtn" type="button">測試提醒</button>
+        </div>
+        <p class="muted">提醒會在頁面內生效：小狗、水瓶、分頁標題和網站圖標會一直提醒你，直到你按「我喝啦」。</p>
+      </div>
+
+      <div class="panel">
+        <h2>今日喝水</h2>
+        <div class="water-area">
+          <div class="bottle" aria-hidden="true">
+            <div class="bottle-cap"></div>
+            <div class="bottle-body">
+              <div class="bottle-text">𝓖𝓻𝓮𝓪𝓽 𝓣𝓲𝓶𝓮</div>
+              <div class="label-dog">
+                <img class="bottle-dog-img" src="great-time-dog-small.png" alt="">
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="stat-number"><span id="bottleCount">0</span> 瓶</div>
+            <div class="muted"><span id="mlCount">0</span> ml · 每瓶 500 ml</div>
+            <div class="progress" aria-hidden="true">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+          </div>
+        </div>
+        <div class="button-row" style="margin-top: 14px;">
+          <button class="primary" id="addBottleBtn" type="button">喝了一瓶 +1</button>
+          <button class="danger" id="resetBtn" type="button">重置今天</button>
+        </div>
+        <div class="log" id="bottleLog" aria-hidden="true"></div>
+      </div>
+
+      <div class="panel">
+        <h2>小設定</h2>
+        <p class="muted">進度以常見成人每日 2000 ml 建議量計算，這個 500 ml 水壺喝 4 瓶就是 100%。資料會存在這台瀏覽器裡，隔天打開會自動重新開始。</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="reminder-pop" id="reminderPop" role="alert" aria-live="assertive">
+    <h2 id="reminderPopTitle">喝水啦</h2>
+    <p id="reminderPopBody">休息一下，喝 500 ml 水吧。</p>
+    <button class="primary" id="dismissReminderBtn" type="button">知道了</button>
+  </div>
+  <button class="drink-confirm" id="drinkConfirmBtn" type="button">我喝啦</button>
+  <div class="corner-alert" id="cornerAlert" aria-hidden="true"></div>
+
+  <script>
+    const REMINDER_MINUTES = 30;
+    const ADVANCE_MINUTES = 1;
+    const BOTTLE_ML = 500;
+    const DAILY_GOAL_ML = 2000;
+    const DAILY_GOAL = Math.ceil(DAILY_GOAL_ML / BOTTLE_ML);
+    const STORAGE_KEY = "cute-water-reminder-state";
+
+    const countdown = document.getElementById("countdown");
+    const nextTime = document.getElementById("nextTime");
+    const dogWrap = document.getElementById("dogWrap");
+    const speech = document.getElementById("speech");
+    const reminderState = document.getElementById("reminderState");
+    const reminderStateText = document.getElementById("reminderStateText");
+    const startBtn = document.getElementById("startBtn");
+    const testBtn = document.getElementById("testBtn");
+    const advanceBtn = document.getElementById("advanceBtn");
+    const addBottleBtn = document.getElementById("addBottleBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const bottleCount = document.getElementById("bottleCount");
+    const mlCount = document.getElementById("mlCount");
+    const progressFill = document.getElementById("progressFill");
+    const bottleLog = document.getElementById("bottleLog");
+    const toast = document.getElementById("toast");
+    const tipText = document.getElementById("tipText");
+    const reminderPop = document.getElementById("reminderPop");
+    const reminderPopTitle = document.getElementById("reminderPopTitle");
+    const reminderPopBody = document.getElementById("reminderPopBody");
+    const dismissReminderBtn = document.getElementById("dismissReminderBtn");
+    const drinkConfirmBtn = document.getElementById("drinkConfirmBtn");
+    const cornerAlert = document.getElementById("cornerAlert");
+    const faviconLink = document.getElementById("faviconLink");
+
+    const healthTips = [
+      "多喝水可以幫助代謝，減脂期也更容易控制食慾。",
+      "水分足夠時，精神和專注力通常會更穩。",
+      "飯前適量喝水，可以讓飽足感來得更自然。",
+      "補水能幫助身體調節體溫，運動後尤其重要。",
+      "口渴前先喝一點水，比一次猛灌更舒服。",
+      "少喝含糖飲料，多喝白水，熱量壓力會小很多。",
+      "水分不足時容易疲倦，先喝水再判斷自己累不累。",
+      "每天穩定補水，皮膚和嘴唇也比較不容易乾。"
+    ];
+
+    const dogTricks = ["trick-hop", "trick-wiggle", "trick-spin"];
+    const dogLines = [
+      "摸摸頭，喝口水！",
+      "我有乖乖等你喔。",
+      "水瓶在這裡，別裝沒看見。",
+      "今天也要亮晶晶！",
+      "再喝一點點就很棒。",
+      "我跳一下，你喝一下。"
+    ];
+
+    const todayKey = () => new Date().toISOString().slice(0, 10);
+
+    let state = loadState();
+    let tickTimer = null;
+    let toastTimer = null;
+    let titleTimer = null;
+    let persistentTitleTimer = null;
+    let reminderPopTimer = null;
+    let activeDogAnimation = null;
+    let faviconTimer = null;
+    let awaitingDrinkConfirm = false;
+    let tipIndex = 0;
+    const originalTitle = document.title;
+
+    function loadState() {
+      const fallback = {
+        date: todayKey(),
+        bottles: 0,
+        running: false,
+        nextReminder: Date.now() + REMINDER_MINUTES * 60 * 1000
+      };
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (!saved || saved.date !== todayKey()) return fallback;
+        return {
+          ...fallback,
+          ...saved,
+          nextReminder: Math.max(saved.nextReminder || fallback.nextReminder, Date.now())
+        };
+      } catch {
+        return fallback;
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function showReminderPopup(title, body) {
+      reminderPopTitle.textContent = title;
+      reminderPopBody.textContent = body;
+      reminderPop.classList.add("show");
+      window.clearTimeout(reminderPopTimer);
+      flashCornerAlert();
+    }
+
+    function flashCornerAlert() {
+      cornerAlert.classList.add("show");
+    }
+
+    function setFavicon(href) {
+      faviconLink.href = `${href}?v=${Date.now()}`;
+    }
+
+    function flashFavicon() {
+      const normalHref = "water-reminder-icon.png";
+      const alertHref = "water-reminder-alert-icon.png";
+      let count = 0;
+      window.clearInterval(faviconTimer);
+      faviconTimer = window.setInterval(() => {
+        setFavicon(count % 2 === 0 ? alertHref : normalHref);
+        count += 1;
+        if (count > 13) {
+          window.clearInterval(faviconTimer);
+          setFavicon(normalHref);
+        }
+      }, 520);
+    }
+
+    function stopFaviconFlash() {
+      window.clearInterval(faviconTimer);
+      setFavicon("water-reminder-icon.png");
+    }
+
+    function startReminder() {
+      state.running = true;
+      state.nextReminder = Date.now() + REMINDER_MINUTES * 60 * 1000;
+      saveState();
+      speech.textContent = "我會盯著水瓶！";
+      showToast("已開始，每 30 分鐘提醒一次。");
+      updateTimer();
+    }
+
+    function triggerReminder() {
+      bounceDog();
+      speech.textContent = "喝水啦！";
+      showToast("喝一瓶水，身體會很開心。");
+      showReminderPopup("喝水啦", "休息一下，喝 500 ml 水吧。");
+      startPersistentDrinkAlert();
+
+      state.nextReminder = Date.now() + REMINDER_MINUTES * 60 * 1000;
+      saveState();
+      updateTimer();
+    }
+
+    function advanceReminder() {
+      if (!state.running) {
+        state.running = true;
+        state.nextReminder = Date.now() + REMINDER_MINUTES * 60 * 1000;
+      }
+
+      state.nextReminder -= ADVANCE_MINUTES * 60 * 1000;
+      if (state.nextReminder <= Date.now()) {
+        triggerReminder();
+      } else {
+        bounceDog();
+        speech.textContent = "提前一點點！";
+        showToast("已提前 1 分鐘。");
+      }
+
+      saveState();
+      updateTimer();
+    }
+
+    function bounceDog() {
+      if (awaitingDrinkConfirm) return;
+      dogWrap.classList.remove("jump");
+      void dogWrap.offsetWidth;
+      dogWrap.classList.add("jump");
+      window.setTimeout(() => dogWrap.classList.remove("jump"), 1100);
+    }
+
+    function playDogInteraction() {
+      const trick = dogTricks[Math.floor(Math.random() * dogTricks.length)];
+      const line = dogLines[Math.floor(Math.random() * dogLines.length)];
+      if (activeDogAnimation) {
+        activeDogAnimation.cancel();
+      }
+      dogWrap.classList.remove("jump", ...dogTricks);
+      speech.textContent = line;
+
+      const trickFrames = {
+        "trick-hop": [
+          { transform: "translateY(0) scale(1)", offset: 0 },
+          { transform: "translateY(8px) scale(1.12, 0.82)", offset: 0.18 },
+          { transform: "translateY(-76px) scale(0.88, 1.14)", offset: 0.42 },
+          { transform: "translateY(4px) scale(1.08, 0.9)", offset: 0.62 },
+          { transform: "translateY(-24px) scale(0.96, 1.05)", offset: 0.78 },
+          { transform: "translateY(0) scale(1)", offset: 1 }
+        ],
+        "trick-wiggle": [
+          { transform: "translateX(0) rotate(0deg)", offset: 0 },
+          { transform: "translateX(-28px) rotate(-12deg)", offset: 0.12 },
+          { transform: "translateX(28px) rotate(12deg)", offset: 0.24 },
+          { transform: "translateX(-24px) rotate(-10deg)", offset: 0.36 },
+          { transform: "translateX(24px) rotate(10deg)", offset: 0.48 },
+          { transform: "translateX(-14px) rotate(-6deg)", offset: 0.62 },
+          { transform: "translateX(10px) rotate(4deg)", offset: 0.78 },
+          { transform: "translateX(0) rotate(0deg)", offset: 1 }
+        ],
+        "trick-spin": [
+          { transform: "rotate(0deg) scale(1)", offset: 0 },
+          { transform: "rotate(-18deg) scale(0.94)", offset: 0.18 },
+          { transform: "rotate(372deg) scale(1.06)", offset: 0.52 },
+          { transform: "rotate(344deg) scale(1.02)", offset: 0.72 },
+          { transform: "rotate(360deg) scale(1)", offset: 1 }
+        ]
+      };
+
+      activeDogAnimation = dogWrap.animate(trickFrames[trick], {
+        duration: 1150,
+        easing: "cubic-bezier(.2, .86, .28, 1.08)",
+        fill: "none"
+      });
+
+      activeDogAnimation.onfinish = () => {
+        activeDogAnimation = null;
+      };
+      activeDogAnimation.oncancel = () => {
+        activeDogAnimation = null;
+      };
+    }
+
+    function addBottle() {
+      state.bottles += 1;
+      stopPersistentDrinkAlert();
+      saveState();
+      renderWater();
+      bounceDog();
+      speech.textContent = state.bottles >= DAILY_GOAL ? "今天很棒！" : "收到一瓶！";
+      showToast(`今日已喝 ${state.bottles} 瓶。`);
+    }
+
+    function resetToday() {
+      state = {
+        date: todayKey(),
+        bottles: 0,
+        running: state.running,
+        nextReminder: Date.now() + REMINDER_MINUTES * 60 * 1000
+      };
+      saveState();
+      renderWater();
+      updateTimer();
+      speech.textContent = "今天重新開始！";
+      showToast("今日喝水紀錄已重置。");
+    }
+
+    function renderWater() {
+      bottleCount.textContent = state.bottles;
+      mlCount.textContent = state.bottles * BOTTLE_ML;
+      progressFill.style.width = `${Math.min(100, state.bottles / DAILY_GOAL * 100)}%`;
+      bottleLog.innerHTML = "";
+
+      const visibleBottles = Math.min(state.bottles, 16);
+      for (let i = 0; i < visibleBottles; i += 1) {
+        const item = document.createElement("span");
+        item.className = "tiny-bottle";
+        item.innerHTML = '<span class="tiny-cap"></span><span class="tiny-side"></span><span class="tiny-dog"></span>';
+        bottleLog.appendChild(item);
+      }
+    }
+
+    function updateTimer() {
+      if (state.date !== todayKey()) {
+        resetToday();
+        return;
+      }
+
+      if (!state.running) {
+        countdown.textContent = "30:00";
+        nextTime.textContent = "按開始後計時";
+        startBtn.textContent = "開始提醒";
+        reminderState.classList.remove("running");
+        reminderStateText.textContent = "提醒未啟動";
+        return;
+      }
+
+      startBtn.textContent = "重新計 30 分鐘";
+      reminderState.classList.add("running");
+      reminderStateText.textContent = "提醒已啟動";
+      const remaining = state.nextReminder - Date.now();
+
+      if (remaining <= 0) {
+        triggerReminder();
+        return;
+      }
+
+      const totalSeconds = Math.ceil(remaining / 1000);
+      const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+      const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+      countdown.textContent = `${minutes}:${seconds}`;
+      nextTime.textContent = `預計 ${formatTime(state.nextReminder)}`;
+    }
+
+    function formatTime(timestamp) {
+      return new Intl.DateTimeFormat("zh-Hant", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(new Date(timestamp));
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    function flashTitle() {
+      let count = 0;
+      window.clearInterval(titleTimer);
+      titleTimer = window.setInterval(() => {
+        document.title = count % 2 === 0 ? "喝水啦！" : originalTitle;
+        count += 1;
+        if (count > 7) {
+          window.clearInterval(titleTimer);
+          document.title = originalTitle;
+        }
+      }, 700);
+    }
+
+    function startPersistentDrinkAlert() {
+      awaitingDrinkConfirm = true;
+      dogWrap.classList.remove("jump");
+      dogWrap.classList.add("alert-shake");
+      document.querySelector(".bottle").classList.add("alert-shake");
+      drinkConfirmBtn.classList.add("show");
+      window.clearInterval(faviconTimer);
+      window.clearInterval(persistentTitleTimer);
+      let alertBlinkOn = true;
+      document.title = "喝水啦！";
+      setFavicon("water-reminder-alert-icon.png");
+      persistentTitleTimer = window.setInterval(() => {
+        alertBlinkOn = !alertBlinkOn;
+        document.title = alertBlinkOn ? "喝水啦！" : originalTitle;
+        setFavicon(alertBlinkOn ? "water-reminder-alert-icon.png" : "water-reminder-icon.png");
+      }, 700);
+    }
+
+    function stopPersistentDrinkAlert() {
+      if (!awaitingDrinkConfirm) return;
+      awaitingDrinkConfirm = false;
+      dogWrap.classList.remove("alert-shake");
+      document.querySelector(".bottle").classList.remove("alert-shake");
+      drinkConfirmBtn.classList.remove("show");
+      window.clearInterval(persistentTitleTimer);
+      document.title = originalTitle;
+      reminderPop.classList.remove("show");
+      cornerAlert.classList.remove("show");
+      stopFaviconFlash();
+    }
+
+    function rotateTip() {
+      tipIndex = (tipIndex + 1) % healthTips.length;
+      tipText.style.animation = "none";
+      tipText.textContent = healthTips[tipIndex];
+      void tipText.offsetWidth;
+      tipText.style.animation = "";
+    }
+
+    startBtn.addEventListener("click", () => {
+      startReminder();
+    });
+
+    testBtn.addEventListener("click", () => {
+      bounceDog();
+      speech.textContent = "測試成功！";
+      showReminderPopup("測試提醒", "這是頁面內提醒，不需要通知權限。");
+      startPersistentDrinkAlert();
+      showToast("測試提醒已觸發。");
+    });
+
+    advanceBtn.addEventListener("click", advanceReminder);
+    addBottleBtn.addEventListener("click", addBottle);
+    drinkConfirmBtn.addEventListener("click", stopPersistentDrinkAlert);
+    resetBtn.addEventListener("click", resetToday);
+    dogWrap.addEventListener("click", playDogInteraction);
+    dismissReminderBtn.addEventListener("click", () => {
+      if (awaitingDrinkConfirm) {
+        showToast("要按中間的「我喝啦」才會停止提醒。");
+        return;
+      }
+      reminderPop.classList.remove("show");
+    });
+
+    renderWater();
+    updateTimer();
+    tickTimer = window.setInterval(updateTimer, 1000);
+    window.setInterval(rotateTip, 4800);
+  </script>
+</body>
+</html>
