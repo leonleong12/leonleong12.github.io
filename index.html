@@ -207,10 +207,26 @@
     }
 
     .post-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       margin: 0 0 8px;
       font-size: clamp(26px, 4vw, 42px);
       line-height: 1.06;
       transition: color 160ms ease;
+    }
+
+    .tool-icon {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      object-fit: contain;
+      border-radius: 8px;
+      filter: drop-shadow(0 4px 7px rgba(35, 35, 35, 0.12));
+    }
+
+    .tool-icon.cat {
+      border-radius: 0;
     }
 
     .post-summary {
@@ -313,7 +329,7 @@
         <a class="post" href="word-counter.html">
           <time class="date" datetime="2026-06-13">Jun 13, 2026</time>
           <div>
-            <h3 class="post-title">字數統計工具</h3>
+            <h3 class="post-title"><img class="tool-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f6f73'/%3E%3Cpath d='M18 15h28v34H18z' fill='%23fffaf0'/%3E%3Cpath d='M24 24h16M24 32h16M24 40h10' stroke='%23232323' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" alt="">字數統計工具</h3>
             <p class="post-summary">貼上文案或文檔內容，即時統計中文字、英文單詞、字符數、段落、行數和預估閱讀時間。</p>
           </div>
           <span class="post-action">打開</span>
@@ -322,7 +338,7 @@
         <a class="post" href="water-reminder.html">
           <time class="date" datetime="2026-06-13">Jun 13, 2026</time>
           <div>
-            <h3 class="post-title">喝水提醒器</h3>
+            <h3 class="post-title"><img class="tool-icon" src="assets/water-reminder-icon.png" alt="">喝水提醒器</h3>
             <p class="post-summary">每 30 分鐘提醒一次。提醒時小狗、水瓶、標題和網站圖標會一起提醒，直到按下「我喝啦」。</p>
           </div>
           <span class="post-action">打開</span>
@@ -331,7 +347,7 @@
         <a class="post" href="virtual-cat.html">
           <time class="date" datetime="2026-06-13">Jun 13, 2026</time>
           <div>
-            <h3 class="post-title">虛擬小貓</h3>
+            <h3 class="post-title"><img class="tool-icon cat" src="assets/virtual-cat-pixel.png" alt="">虛擬小貓</h3>
             <p class="post-summary">一個可以放在頁面裡互動的小貓玩具，適合當成輕鬆陪伴型的小頁面。</p>
           </div>
           <span class="post-action">打開</span>
@@ -340,7 +356,7 @@
         <a class="post" href="fps-sensitivity-converter.html">
           <time class="date" datetime="2026-06-13">Jun 13, 2026</time>
           <div>
-            <h3 class="post-title">FPS 靈敏度轉換器</h3>
+            <h3 class="post-title"><img class="tool-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23090b10'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%235eead4' stroke-width='4'/%3E%3Cpath d='M32 10v12M32 42v12M10 32h12M42 32h12' stroke='%23f8fafc' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23f97316'/%3E%3C/svg%3E" alt="">FPS 靈敏度轉換器</h3>
             <p class="post-summary">用來換算 FPS 遊戲滑鼠靈敏度，把不同遊戲、DPI 和手感整理成更好比較的數字。</p>
           </div>
           <span class="post-action">打開</span>
