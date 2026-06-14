@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2318171c'/%3E%3Cpath d='M17 34l9 9 21-23' fill='none' stroke='%2358a6ff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M15 50h34' stroke='%23f0f6fc' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <title>發布檢查器</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --panel: #fff;
+      --panel-2: #f6f8fa;
+      --border: #d0d7de;
+      --text: #24292f;
+      --muted: #57606a;
+      --accent: #0969da;
+      --good: #1a7f37;
+      --warn: #9a6700;
+      --bad: #cf222e;
+      --soft: #ddf4ff;
+      --shadow: 0 8px 24px rgba(140, 149, 159, .18);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(246, 248, 250, .94);
+      backdrop-filter: blur(12px);
+    }
+    .repo-mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--accent);
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+    .topbar strong { display: block; font-size: 14px; }
+    .topbar span { color: var(--muted); font-size: 13px; }
+    .home-link {
+      margin-left: auto;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .page { width: min(1280px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 40px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; margin-bottom: 16px; }
+    .card, .panel, .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .hero-main { padding: 22px; }
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 12px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    h1 { margin: 0; font-size: 40px; line-height: 1.1; letter-spacing: 0; }
+    .lead { max-width: 800px; margin: 12px 0 0; color: var(--muted); line-height: 1.7; font-size: 15px; }
+    .hero-side { padding: 16px; background: linear-gradient(#fff, #fafbfc); }
+    .hero-side button {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid rgba(27, 31, 36, .15);
+      border-radius: 6px;
+      background: #24292f;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .hero-side input { display: none; }
+    .hero-side p { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat { padding: 16px; }
+    .stat span { display: block; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .stat strong { display: block; margin-top: 8px; font-size: 30px; line-height: 1.05; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tab {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--muted);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tab.active { color: #fff; background: #24292f; border-color: #24292f; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); gap: 16px; align-items: start; }
+    .view { display: none; }
+    .view.active { display: grid; }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      border-radius: 12px 12px 0 0;
+      background: var(--panel-2);
+    }
+    .panel-header h2 { margin: 0; font-size: 16px; }
+    .badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 12px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .check:first-child { border-top: 0; }
+    .mark {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      margin-top: 2px;
+      border-radius: 50%;
+      color: #fff;
+    }
+    .mark svg {
+      width: 13px;
+      height: 13px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .mark.ok { background: var(--good); }
+    .mark.warn { background: var(--warn); }
+    .mark.bad { background: var(--bad); }
+    .check strong { display: block; margin-bottom: 4px; font-size: 14px; }
+    .check p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; word-break: break-word; }
+    .check details {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+    .check summary {
+      width: fit-content;
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .check ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+
+    .files { max-height: 620px; overflow: auto; }
+    .file {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .file:first-child { border-top: 0; }
+    .file code { color: var(--text); word-break: break-all; font-family: SFMono-Regular, Consolas, "Liberation Mono", monospace; }
+    .tag {
+      padding: 3px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .empty { padding: 16px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+    .report { padding: 18px; display: grid; gap: 14px; }
+    .report-title { font-size: 24px; font-weight: 800; }
+    .report-title.good { color: var(--good); }
+    .report-title.warn { color: var(--warn); }
+    .report-title.bad { color: var(--bad); }
+    .report-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .report-box { padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+    .report-box span { display: block; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .report-box strong { display: block; margin-top: 6px; font-size: 24px; }
+    pre { margin: 0; padding: 14px; overflow: auto; background: #0d1117; color: #e6edf3; border-radius: 0 0 12px 12px; font-size: 12px; line-height: 1.6; }
+
+    @media (max-width: 980px) {
+      .hero, .layout, .stats, .report-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="repo-mark">P</div>
+    <div>
+      <strong>發布檢查器</strong>
+      <span>GitHub Pages 發布前檢查</span>
+    </div>
+    <a class="home-link" href="index.html">返回首頁</a>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div class="card hero-main">
+        <div class="eyebrow">local scan only</div>
+        <h1>發布檢查器</h1>
+        <p class="lead">選擇 GitHub Pages 根資料夾，檢查首頁入口、favicon、title、頁面互連、assets 引用、圖片大小與命名規範。掃描只在本機瀏覽器完成，不會上傳檔案。</p>
+      </div>
+      <div class="card hero-side">
+        <button id="pickBtn" type="button">選擇網站資料夾</button>
+        <input id="folderInput" type="file" webkitdirectory directory multiple>
+        <p>請直接選 GitHub Pages 根資料夾，不用再選到更深一層。Chrome / Edge 可用。</p>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="摘要">
+      <div class="stat" id="sHtml"><span>HTML 頁面</span><strong>0</strong></div>
+      <div class="stat" id="sIssues"><span>問題</span><strong>0</strong></div>
+      <div class="stat" id="sWarnings"><span>提醒</span><strong>0</strong></div>
+      <div class="stat" id="sAssets"><span>本地引用</span><strong>0</strong></div>
+    </section>
+
+    <div class="tabs">
+      <button class="tab active" type="button" data-view="checks">Checks</button>
+      <button class="tab" type="button" data-view="report">發布報告</button>
+    </div>
+
+    <section class="layout view active" id="view-checks">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Checks</h2>
+          <span class="badge" id="statusBadge">等待掃描</span>
+        </div>
+        <div id="checkList"><div class="empty">選擇資料夾後，這裡會列出可發布性檢查結果。</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Files</h2>
+          <span class="badge" id="fileBadge">0 files</span>
+        </div>
+        <div class="files" id="fileList"><div class="empty">尚未掃描。</div></div>
+      </div>
+    </section>
+
+    <section class="layout view" id="view-report">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>發布報告</h2>
+          <span class="badge" id="reportBadge">等待掃描</span>
+        </div>
+        <div class="report" id="reportPanel">
+          <div class="empty">掃描資料夾後，這裡會生成本次發布報告和下一步建議。</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>GitHub 上傳建議</h2>
+          <span class="badge">workflow</span>
+        </div>
+        <pre>1. 保持根目錄有 index.html
+2. HTML 頁面放根目錄
+3. 圖片和素材放 assets/
+4. 新頁面加入首頁作品列表
+5. 發布前掃描一次
+6. 到 GitHub Pages 確認 branch / root 設定</pre>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const input = $("folderInput");
+    const pickBtn = $("pickBtn");
+    const textExtensions = new Set(["html", "css", "js", "json", "svg", "txt", "md", "webmanifest", "xml"]);
+
+    function normalize(path) {
+      return String(path || "")
+        .replace(/\\/g, "/")
+        .replace(/^\.\/+/, "")
+        .replace(/^\/+/, "")
+        .replace(/^GitHub\//i, "")
+        .replace(/^github\//i, "")
+        .trim();
+    }
+
+    function basename(path) {
+      return normalize(path).split("/").pop() || "";
+    }
+
+    function ext(path) {
+      const name = basename(path);
+      const dot = name.lastIndexOf(".");
+      return dot >= 0 ? name.slice(dot + 1).toLowerCase() : "";
+    }
+
+    function readText(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => resolve("");
+        reader.readAsText(file);
+      });
+    }
+
+    function isExternal(ref) {
+      return /^(https?:|mailto:|tel:|javascript:|data:|blob:|#)/i.test(ref);
+    }
+
+    function cleanRef(ref) {
+      return String(ref || "").trim().replace(/^["']|["']$/g, "").split("#")[0].split("?")[0];
+    }
+
+    function resolveRef(baseFile, ref) {
+      const cleaned = cleanRef(ref);
+      if (!cleaned || isExternal(cleaned)) return "";
+      if (cleaned.startsWith("/")) return normalize(cleaned.slice(1));
+      const base = normalize(baseFile).split("/");
+      base.pop();
+      for (const part of cleaned.split("/")) {
+        if (!part || part === ".") continue;
+        if (part === "..") base.pop();
+        else base.push(part);
+      }
+      return base.join("/");
+    }
+
+    function stripCodeExamples(text) {
+      return String(text)
+        .replace(/<script[\s\S]*?<\/script>/gi, "")
+        .replace(/<pre[\s\S]*?<\/pre>/gi, "")
+        .replace(/<code[\s\S]*?<\/code>/gi, "")
+        .replace(/<textarea[\s\S]*?<\/textarea>/gi, "");
+    }
+
+    function parseRefs(text) {
+      const source = stripCodeExamples(text);
+      const refs = [];
+      const attr = /\b(?:src|href|poster)\s*=\s*["']([^"']+)["']/gi;
+      const css = /url\(\s*["']?([^"')]+)["']?\s*\)/gi;
+      let match;
+      while ((match = attr.exec(source))) refs.push(match[1]);
+      while ((match = css.exec(source))) refs.push(match[1]);
+      return refs;
+    }
+
+    function mark(kind) {
+      if (kind === "ok") return `<span class="mark ok"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-8"></path></svg></span>`;
+      if (kind === "warn") return `<span class="mark warn"><svg viewBox="0 0 16 16"><path d="M8 3v5"></path><path d="M8 11.5h.01"></path></svg></span>`;
+      return `<span class="mark bad"><svg viewBox="0 0 16 16"><path d="M4 4l8 8"></path><path d="M12 4l-8 8"></path></svg></span>`;
+    }
+
+    function row(kind, title, detail, items = []) {
+      const details = items.length
+        ? `<details><summary>查看 ${items.length} 個項目</summary><ul>${items.map((item) => `<li>${item}</li>`).join("")}</ul></details>`
+        : "";
+      return `<div class="check">${mark(kind)}<div><strong>${title}</strong><p>${detail}</p>${details}</div></div>`;
+    }
+
+    function setMetric(id, value, type) {
+      const el = $(id);
+      el.querySelector("strong").textContent = value;
+      el.classList.remove("ok", "warn", "bad");
+      if (type) el.classList.add(type);
+    }
+
+    function hasFavicon(text) {
+      return /<link\b[^>]*rel=["'][^"']*icon/i.test(text);
+    }
+
+    function titleOf(text) {
+      const match = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+      return match ? match[1].trim() : "";
+    }
+
+    function renderReport(data) {
+      const issueCount = data.issueItems.length;
+      const warningCount = data.warningItems.length;
+      const status = issueCount ? "bad" : warningCount ? "warn" : "good";
+      const title = issueCount ? "需要修正後再發布" : warningCount ? "可以發布，但有提醒" : "可以發布";
+      $("reportBadge").textContent = title;
+      const issueRows = data.issueItems.map((item) => row("bad", item.title, item.detail, item.items));
+      const warningRows = data.warningItems.map((item) => row("warn", item.title, item.detail, item.items));
+      const okRows = !issueCount && !warningCount ? [row("ok", "沒有發現阻塞項", "目前結構乾淨，可以上傳 GitHub Pages。")] : [];
+      $("reportPanel").innerHTML = `
+        <div class="report-title ${status}">${title}</div>
+        <div class="report-grid">
+          <div class="report-box"><span>HTML 頁面</span><strong>${data.htmlCount}</strong></div>
+          <div class="report-box"><span>錯誤</span><strong>${issueCount}</strong></div>
+          <div class="report-box"><span>提醒</span><strong>${warningCount}</strong></div>
+        </div>
+        ${issueRows.join("")}
+        ${warningRows.join("")}
+        ${okRows.join("")}
+      `;
+    }
+
+    function summarizeItems(items) {
+      if (!items.length) return "";
+      const visible = items.slice(0, 3).join("、");
+      return items.length > 3 ? `${visible}，還有 ${items.length - 3} 個。` : visible;
+    }
+
+    function addIssue(issueItems, checks, title, detail) {
+      const items = Array.isArray(detail) ? detail : [detail];
+      const displayTitle = items.length > 1 ? `${title}（${items.length}）` : title;
+      const displayDetail = Array.isArray(detail) ? summarizeItems(items) : detail;
+      issueItems.push({ title: displayTitle, detail: displayDetail, items, count: items.length });
+      checks.push(row("bad", displayTitle, displayDetail, items.length > 1 ? items : []));
+    }
+
+    function addWarning(warningItems, checks, title, detail) {
+      const items = Array.isArray(detail) ? detail : [detail];
+      const displayTitle = items.length > 1 ? `${title}（${items.length}）` : title;
+      const displayDetail = Array.isArray(detail) ? summarizeItems(items) : detail;
+      warningItems.push({ title: displayTitle, detail: displayDetail, items, count: items.length });
+      checks.push(row("warn", displayTitle, displayDetail, items.length > 1 ? items : []));
+    }
+
+    async function scan(fileListLike) {
+      const files = Array.from(fileListLike).map((file) => ({
+        file,
+        path: normalize(file.webkitRelativePath || file.name)
+      }));
+      const map = new Map(files.map((item) => [item.path, item]));
+      const htmlFiles = files.filter((item) => ext(item.path) === "html").sort((a, b) => a.path.localeCompare(b.path));
+      const texts = new Map();
+      for (const item of files.filter((file) => textExtensions.has(ext(file.path)))) {
+        texts.set(item.path, await readText(item.file));
+      }
+
+      const rootIndex = files.find((item) => basename(item.path).toLowerCase() === "index.html");
+      const rootIndexText = rootIndex ? texts.get(rootIndex.path) || "" : "";
+      const checks = [];
+      const issueItems = [];
+      const warningItems = [];
+      let refs = 0;
+      const missingRefs = [];
+
+      if (rootIndex) {
+        checks.push(row("ok", "找到首頁入口", `${rootIndex.path} 會被 GitHub Pages 當成首頁。`));
+      } else {
+        addIssue(issueItems, checks, "缺少 root index.html", "請把 index.html 放在 GitHub Pages 根目錄。");
+      }
+
+      if (htmlFiles.length) {
+        checks.push(row("ok", `掃描到 ${htmlFiles.length} 個 HTML 頁面`, htmlFiles.map((item) => item.path).join("、")));
+      } else {
+        addIssue(issueItems, checks, "沒有掃描到 HTML 頁面", "請確認選的是 GitHub Pages 根資料夾。");
+      }
+
+      const noFav = htmlFiles.filter((item) => !hasFavicon(texts.get(item.path) || "")).map((item) => item.path);
+      if (noFav.length) {
+        addWarning(warningItems, checks, "頁面缺少 favicon", noFav);
+      } else if (htmlFiles.length) {
+        checks.push(row("ok", "所有 HTML 頁面都有 favicon", "每個頁面都找到 link rel=\"icon\"。"));
+      }
+
+      const badTitles = htmlFiles.filter((item) => {
+        const title = titleOf(texts.get(item.path) || "");
+        return !title || title.length < 2 || title.length > 60;
+      }).map((item) => item.path);
+      if (badTitles.length) {
+        addWarning(warningItems, checks, "頁面 title 需要整理", badTitles);
+      } else if (htmlFiles.length) {
+        checks.push(row("ok", "所有頁面 title 看起來合理", "每個 HTML 都有 2-60 字元的 title。"));
+      }
+
+      const notLinked = htmlFiles
+        .filter((item) => basename(item.path).toLowerCase() !== "index.html" && !rootIndexText.includes(basename(item.path)))
+        .map((item) => item.path);
+      if (!rootIndex) {
+        addWarning(warningItems, checks, "無法檢查首頁列表", "缺少 root index.html。");
+      } else if (notLinked.length) {
+        addWarning(warningItems, checks, "首頁還缺頁面入口", notLinked);
+      } else if (htmlFiles.length > 1) {
+        checks.push(row("ok", "首頁已收錄所有子頁面", "所有非首頁 HTML 都能在 index.html 找到。"));
+      }
+
+      const allowedMissing = new Set(["favicon.ico", "apple-touch-icon.png"]);
+      for (const item of htmlFiles) {
+        const text = texts.get(item.path) || "";
+        for (const ref of parseRefs(text)) {
+          const resolved = resolveRef(item.path, ref);
+          if (!resolved || /[{}$]/.test(resolved)) continue;
+          refs += 1;
+          if (!map.has(resolved) && !allowedMissing.has(basename(resolved).toLowerCase())) {
+            missingRefs.push(`${item.path} -> ${resolved}`);
+          }
+        }
+      }
+      if (missingRefs.length) {
+        addIssue(issueItems, checks, "本地引用找不到檔案", missingRefs);
+      } else if (refs) {
+        checks.push(row("ok", "本地引用正常", `檢查了 ${refs} 個本地引用，沒有缺檔。`));
+      } else {
+        addWarning(warningItems, checks, "沒有找到本地引用", "如果頁面有圖片，請確認不是全部依賴外部資源。");
+      }
+
+      const hasAssets = files.some((item) => item.path.startsWith("assets/"));
+      if (hasAssets) {
+        checks.push(row("ok", "assets 資料夾存在", "素材集中在 assets/。"));
+      } else {
+        addWarning(warningItems, checks, "沒有 assets 資料夾", "建議把圖片和素材集中到 assets/。");
+      }
+
+      const largeImages = files
+        .filter((item) => ["png", "jpg", "jpeg", "webp", "gif"].includes(ext(item.path)) && item.file.size > 800 * 1024)
+        .map((item) => `${item.path} (${Math.round(item.file.size / 1024)} KB)`);
+      if (largeImages.length) {
+        addWarning(warningItems, checks, "圖片偏大", largeImages);
+      } else {
+        checks.push(row("ok", "圖片大小正常", "沒有超過 800 KB 的圖片。"));
+      }
+
+      const badNames = files
+        .map((item) => item.path)
+        .filter((path) => /[A-Z]/.test(basename(path)) || /\s|[\u4e00-\u9fff]/.test(path));
+      if (badNames.length) {
+        addWarning(warningItems, checks, "檔名可再規範化", badNames);
+      } else {
+        checks.push(row("ok", "檔名風格一致", "沒有明顯的大寫、空格或中文檔名。"));
+      }
+
+      const has404 = files.some((item) => basename(item.path).toLowerCase() === "404.html");
+      if (has404) {
+        checks.push(row("ok", "404.html 已存在", "錯誤頁更完整。"));
+      } else {
+        addWarning(warningItems, checks, "沒有 404.html", "可選，但自訂錯誤頁會更完整。");
+      }
+
+      setMetric("sHtml", htmlFiles.length, htmlFiles.length ? "ok" : "bad");
+      setMetric("sIssues", issueItems.length, issueItems.length ? "bad" : "ok");
+      setMetric("sWarnings", warningItems.length, warningItems.length ? "warn" : "ok");
+      setMetric("sAssets", refs, refs ? "ok" : "warn");
+      $("statusBadge").textContent = issueItems.length ? "需要修正" : warningItems.length ? "可發布，但有提醒" : "可以發布";
+      $("fileBadge").textContent = `${files.length} files`;
+      $("checkList").innerHTML = checks.join("");
+      $("fileList").innerHTML = htmlFiles.length
+        ? htmlFiles.map((item) => {
+          const text = texts.get(item.path) || "";
+          const linked = rootIndexText.includes(basename(item.path));
+          const chip = item === rootIndex ? "root index" : linked ? "linked" : "not linked";
+          return `<div class="file"><code>${item.path}</code><span class="tag">${hasFavicon(text) ? "favicon" : "no favicon"} · ${chip}</span></div>`;
+        }).join("")
+        : '<div class="empty">沒有找到 HTML 檔案。</div>';
+      renderReport({ htmlCount: htmlFiles.length, issueItems, warningItems });
+    }
+
+    document.querySelectorAll(".tab").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
+        document.querySelectorAll(".view").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        $("view-" + button.dataset.view).classList.add("active");
+      });
+    });
+
+    pickBtn.addEventListener("click", () => input.click());
+    input.addEventListener("change", () => {
+      if (input.files && input.files.length) scan(input.files);
+    });
+  </script>
+</body>
+</html>
